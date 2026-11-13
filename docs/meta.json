@@ -1,0 +1,14 @@
+{
+  "title": "文档",
+  "pages": [
+    "---开始---",
+    "setup",
+    "changelog",
+    "---使用说明---",
+    "user-document",
+    "qa",
+    "---插件---",
+    "plugin-document",
+    "plugin-list"
+  ]
+}

@@ -1,4 +1,7 @@
-# Changelog
+---
+title: 更新笔记
+description: JLiverTool 的版本记录与功能变化。
+---
 
 All notable changes to this project will be documented in this file.
 

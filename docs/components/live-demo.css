@@ -1,0 +1,69 @@
+/* GPUI main_view: 32px header, 24px message rows, 32px status + 40px input.
+   Dracula theme values match crates/jlivertool-ui/src/theme.rs. */
+.hero-demo { min-width: 0; }
+.native-window-viewport { overflow-x: auto; padding: 1px; border-radius: 15px; }
+.native-window {
+  --native-bg: #191a21;
+  --native-secondary: #212229;
+  --native-accent: #ac8be0;
+  --native-text: #eaece9;
+  --native-border: #5d6d98;
+  display: flex; flex-direction: column; position: relative;
+  width: 100%; min-width: 388px; height: 568px;
+  overflow: hidden; border-radius: 14px; border: 1px solid #ffffff38;
+  background: var(--native-bg); color: var(--native-text);
+  box-shadow: 0 16px 48px -20px #18191f66, 0 0 0 1px #00000025;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 14px; font-weight: 400; line-height: 24px; text-align: left;
+  color-scheme: dark;
+}
+.native-titlebar { display: flex; align-items: center; flex: 0 0 32px; background: var(--native-secondary); color: #ffffffb3; position: relative; }
+.native-titlebar.is-live { background: #f981c6; }
+.native-traffic-lights { position: absolute; left: 8px; top: 9px; display: flex; gap: 8px; }
+.native-traffic-lights i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #00000020; background: #ff5f57; }
+.native-traffic-lights i:nth-child(2) { background: #febc2e; }
+.native-traffic-lights i:nth-child(3) { background: #28c840; }
+.native-live-status { display: flex; align-items: center; gap: 8px; padding-left: 78px; flex: 1; color: #fff; font-size: 11px; white-space: nowrap; }
+.native-live-status strong { font-weight: 700; }
+.native-toolbar { display: flex; gap: 8px; padding-right: 8px; align-items: center; }
+.native-tool { display: flex; justify-content: center; align-items: center; flex: 0 0 24px; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; }
+.native-tool:not(.native-tool-static):hover { background: #ffffff33; }
+.native-tool[aria-pressed='true'] { background: #ffffff1a; color: var(--native-accent); }
+.native-tool[aria-pressed='true'] .native-pin-head { fill: currentColor; }
+.native-tool-static { cursor: default; }
+.native-feed { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #ffffff30 transparent; padding-top: 2px; }
+.native-message { min-height: 24px; padding-inline: 8px; border-radius: 2px; line-height: 0; overflow-wrap: anywhere; }
+.native-message:hover { background: #1e1f28; }
+/* Center the inline boxes together while preserving full-width wrapped lines. */
+.native-username, .native-message-text { vertical-align: middle; line-height: 24px; }
+.native-username { color: var(--native-accent); }
+.native-medal { display: inline-flex; vertical-align: middle; align-items: center; height: 17px; line-height: 15px; border: 1px solid var(--medal-border); border-radius: 3px; overflow: hidden; margin-right: 4px; white-space: nowrap; font-size: 10.5px; }
+.native-medal-name { display: inline-flex; align-items: center; height: 100%; padding-inline: 3px; gap: 2px; color: #fff; background: var(--medal); }
+.native-medal-name img { display: inline-block; flex: 0 0 15px; width: 15px; height: 15px; object-fit: contain; }
+.native-medal-level { display: inline-flex; align-items: center; justify-content: center; padding-inline: 3px; min-width: 17px; height: 100%; background: #fff; color: var(--medal-text); }
+.native-footer { flex-shrink: 0; background: var(--native-secondary); border-top: 1px solid #1e1f28; }
+.native-room-status { display: flex; height: 32px; padding-inline: 12px; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; color: #b7b9b6; }
+.native-room-status > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.native-room-status > i { flex: 0 0 6px; width: 6px; height: 6px; border-radius: 50%; background: hsl(120 60% 50%); }
+.native-composer { position: relative; display: flex; align-items: center; gap: 8px; height: 40px; padding: 8px 12px; }
+.native-input-wrap { position: relative; flex: 1; min-width: 0; }
+.native-input-wrap input { display: block; width: 100%; height: 30px; padding: 4px 24px 4px 9px; border: 1px solid #858590; border-radius: 5px; outline: none; background: transparent; color: var(--native-text); font: inherit; font-size: 12px; line-height: 20px; }
+.native-input-wrap input::placeholder { color: #93949b; opacity: 1; }
+.native-input-wrap input:focus { border-color: var(--native-accent); box-shadow: 0 0 0 1px var(--native-accent); }
+.native-clear { position: absolute; top: 3px; right: 4px; width: 22px; height: 24px; border: 0; padding: 0; background: transparent; color: #b7b9b6; cursor: pointer; font-size: 16px; line-height: 24px; }
+.native-send { flex-shrink: 0; padding: 6px 12px; border: 0; border-radius: 4px; background: var(--native-accent); color: #fff; font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; }
+.native-send:hover { opacity: .8; }
+.native-commands { position: absolute; bottom: 44px; left: 12px; right: 12px; padding-block: 4px; border: 1px solid var(--native-border); border-radius: 6px; background: var(--native-secondary); box-shadow: 0 8px 24px #0005; overflow: hidden; }
+.native-commands button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 12px; border: 0; background: transparent; color: #b7b9b6; font: inherit; font-size: 12px; line-height: 20px; cursor: pointer; }
+.native-commands button[aria-selected='true'], .native-commands button:hover { background: #1e1f28; }
+.native-commands button > span { font-size: 13px; font-weight: 500; color: var(--native-accent); }
+.native-window :is(button,a):focus-visible { outline: 2px solid var(--native-accent); outline-offset: 2px; }
+.hero-demo figcaption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 14px; color: var(--color-fd-muted-foreground); font-size: 11px; line-height: 1.8; }
+.hero-demo figcaption button { padding: 0; background: transparent; border: 0; cursor: pointer; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 600px) {
+  .native-window { min-width: 0; height: 540px; }
+  .native-toolbar { gap: 2px; padding-right: 5px; }
+  .native-tool { flex-basis: 22px; width: 22px; }
+  .native-live-status { padding-left: 68px; gap: 5px; }
+  .native-traffic-lights { gap: 6px; }
+}

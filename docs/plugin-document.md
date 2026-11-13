@@ -1,4 +1,7 @@
-# 插件文档
+---
+title: 插件文档
+description: 安装插件，并使用 jliverAPI 接收弹幕、礼物和直播间事件。
+---
 
 插件样例：[测试插件](https://github.com/powerlive-io/JLiverTool/tree/master/plugins/test-plugin)
 
