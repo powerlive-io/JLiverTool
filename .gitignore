@@ -14,7 +14,12 @@ src/*/*.js
 
 releases.html
 
-docs/.vitepress/cache
+# Documentation build output
+docs/.next/
+docs/.source/
+docs/out/
+docs/next-env.d.ts
+*.tsbuildinfo
 
 # Rust
 /target/

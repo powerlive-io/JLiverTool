@@ -5,13 +5,39 @@
   "homepage": "https://github.com/powerlive-io/JLiverTool",
   "private": true,
   "scripts": {
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:dev": "cd docs && next dev",
+    "docs:build": "cd docs && next build",
+    "docs:preview": "serve docs/out --listen 3000",
+    "docs:typecheck": "cd docs && fumadocs-mdx && tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "overrides": {
+    "serve": {
+      "compression": "^1.8.2"
+    }
   },
   "author": "Xinrea <xinreas@outlook.com>",
   "license": "MIT",
   "devDependencies": {
-    "vitepress": "^1.6.3"
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/mdx": "^2.0.14",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "serve": "^14.2.7",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@fumadocs/language": "^0.2.19",
+    "fumadocs-core": "^16.19.0",
+    "fumadocs-mdx": "^15.6.1",
+    "fumadocs-ui": "^16.19.0",
+    "lucide-react": "^1.72.0",
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }

@@ -1,0 +1,70 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+@theme {
+  --font-sans: 'Avenir Next', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+:root {
+  --color-fd-primary: #7e22a8;
+  --color-fd-primary-foreground: #ffffff;
+}
+
+.dark {
+  --color-fd-primary: #d8a4f3;
+  --color-fd-primary-foreground: #281335;
+}
+
+body { font-family: var(--font-sans); }
+.home-shell { width: min(1120px, 100%); margin-inline: auto; padding: 0 32px; }
+.home-hero { display: grid; grid-template-columns: 1fr 1.05fr; align-items: center; gap: 64px; padding: 64px 0 64px; }
+.hero-logo { margin-bottom: 28px; }
+.hero-copy h1 { font-size: clamp(32px, 3.5vw, 46px); line-height: 1.35; letter-spacing: -.045em; font-weight: 700; }
+.hero-description { max-width: 33em; color: var(--color-fd-muted-foreground); font-size: 17px; line-height: 1.9; margin-top: 24px; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.home-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; transition: background-color .15s; }
+.home-button.primary { background: var(--color-fd-primary); color: var(--color-fd-primary-foreground); }
+.home-button.primary:hover { opacity: .9; }
+.home-button.secondary { border: 1px solid var(--color-fd-border); background: var(--color-fd-card); }
+.home-button.secondary:hover { background: var(--color-fd-accent); }
+.platforms { color: var(--color-fd-muted-foreground); font-size: 12px; margin-top: 20px; }
+.guide-section { display: grid; grid-template-columns: 1fr 2fr; gap: 60px; padding: 44px 0; border-top: 1px solid var(--color-fd-border); }
+.section-intro h2, .home-details h2 { font-size: 22px; font-weight: 600; letter-spacing: -.025em; }
+.section-intro > p { color: var(--color-fd-muted-foreground); margin-top: 10px; font-size: 14px; }
+.guide-link { display: flex; align-items: center; gap: 20px; padding: 22px 12px; border-bottom: 1px solid var(--color-fd-border); border-radius: 4px; }
+.guide-link:first-child { padding-top: 8px; }
+.guide-link:last-child { border-bottom: 0; }
+.guide-link:hover { background: var(--color-fd-accent); }
+.guide-icon { color: var(--color-fd-primary); flex-shrink: 0; }
+.guide-link h3 { font-weight: 600; font-size: 16px; }
+.guide-link p { margin-top: 6px; color: var(--color-fd-muted-foreground); font-size: 14px; line-height: 1.7; }
+.guide-arrow { flex-shrink: 0; margin-left: auto; color: var(--color-fd-muted-foreground); }
+.home-details { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; padding: 44px 0 64px; border-top: 1px solid var(--color-fd-border); }
+.home-details p { margin-top: 14px; max-width: 32em; color: var(--color-fd-muted-foreground); font-size: 14px; line-height: 1.9; }
+.home-details a { display: inline-block; margin-top: 20px; color: var(--color-fd-primary); font-size: 14px; font-weight: 600; }
+.home-details a:hover, .home-footer a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.home-footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 28px 0; border-top: 1px solid var(--color-fd-border); color: var(--color-fd-muted-foreground); font-size: 12px; }
+.home-footer > div { display: flex; flex-wrap: wrap; gap: 20px; }
+
+@media (max-width: 800px) {
+  .home-hero { grid-template-columns: 1fr; gap: 32px; padding-block: 48px; }
+  .hero-demo { width: 100%; max-width: 500px; margin-inline: auto; }
+  .hero-copy h1 { font-size: 32px; }
+  .guide-section { grid-template-columns: 1fr; gap: 28px; }
+  .home-details { gap: 32px; }
+}
+
+@media (max-width: 600px) {
+  .home-shell { padding-inline: 22px; }
+  .home-hero { grid-template-columns: 1fr; }
+  .hero-copy h1 { font-size: 34px; }
+  .hero-description { font-size: 16px; }
+  .hero-demo { width: 100%; }
+  .home-details { grid-template-columns: 1fr; }
+  .home-footer { align-items: flex-start; flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+}

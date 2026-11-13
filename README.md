@@ -90,6 +90,27 @@ makepkg -si
 
 ## 开发说明
 
+### 文档站
+
+文档站使用 [Fumadocs](https://fumadocs.dev/) + Next.js，要求 Node.js 22 或更新版本。
+
+```bash
+npm ci
+npm run docs:dev
+```
+
+打开 `http://localhost:3000` 预览。文档正文位于 `docs/*.md`，通过 frontmatter 设置 `title` 和 `description`；侧栏顺序在 `docs/meta.json` 中配置，首页位于 `docs/app/(home)/page.tsx`。图片继续存放在 `docs/public/`。
+
+首页的界面展示位于 `docs/components/live-demo.tsx`，按 GPUI 主窗口布局用 HTML/CSS 复刻，仅使用本地模拟数据。
+
+```bash
+npm run docs:typecheck
+npm run docs:build
+npm run docs:preview
+```
+
+构建产物位于 `docs/out/`，包含静态页面和本地搜索索引，无需 Node.js 服务。原有 `setup.html`、`plugin-document.html` 等页面地址继续可用。GitHub Pages 工作流会根据站点配置自动传入 `NEXT_PUBLIC_BASE_PATH`，用于仓库子路径部署；本地默认不设置该变量。
+
 ### Run
 
 使用 `rust-toolchain.toml` 指定的 Rust 1.98.1。GPUI 的升级说明和新功能评估见 [GPUI 升级评估](crates/gpui-upgrade.md)。
