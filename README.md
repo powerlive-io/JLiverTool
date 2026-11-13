@@ -99,7 +99,7 @@ npm ci
 npm run docs:dev
 ```
 
-打开 `http://localhost:3000` 预览。文档正文位于 `docs/*.md`，通过 frontmatter 设置 `title` 和 `description`；侧栏顺序在 `docs/meta.json` 中配置，首页位于 `docs/app/(home)/page.tsx`。图片继续存放在 `docs/public/`。
+打开 `http://localhost:3000` 预览。文档正文位于 `docs/*.md` 和 `docs/*.mdx`，需要交互组件的页面使用 MDX；通过 frontmatter 设置 `title` 和 `description`；侧栏顺序在 `docs/meta.json` 中配置，首页位于 `docs/app/(home)/page.tsx`。图片继续存放在 `docs/public/`。
 
 首页的界面展示位于 `docs/components/live-demo.tsx`，按 GPUI 主窗口布局用 HTML/CSS 复刻，仅使用本地模拟数据。
 
