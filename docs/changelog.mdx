@@ -1,0 +1,476 @@
+---
+title: 更新笔记
+description: 按版本查看 JLiverTool 的新增功能、体验优化与问题修复。
+---
+
+当前最新正式版为 **3.2.1**，发布于 **2026 年 10 月 12 日**。[下载最新版本](https://github.com/powerlive-io/JLiverTool/releases/latest)。
+
+本页按版本倒序整理面向使用者的变化，日期采用北京时间。历史功能以对应版本为准，当前使用方式请参阅[功能文档](/user-document)。
+
+<div className="release-notes">
+
+## 3.2 系列
+
+<section className="release-entry">
+
+### 3.2.1 · 图片与动图修复
+
+<p className="release-meta"><time dateTime="2026-10-12">2026 年 10 月 12 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.2.1">发布详情</a></p>
+
+- 修复 Windows 下网络图片无法加载、显示的问题。
+- 修复表情显示尺寸异常，以及弹幕窗口失去焦点后动图停止播放的问题。
+
+</section>
+
+<section className="release-entry">
+
+### 3.2.0 · 自动更新与在线礼物记录
+
+<p className="release-meta"><time dateTime="2026-10-10">2026 年 10 月 10 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.2.0">发布详情</a></p>
+
+- 新增更新包下载、安装和自动重启流程，并支持在设置中手动检查更新。
+- 新增 B 站在线礼物记录查询，可查询当前已登录账号的数据。
+- 升级界面组件，并统一组件与应用主题的配色。
+
+</section>
+
+## 3.1 系列
+
+<section className="release-entry">
+
+### 3.1.1 · 礼物消息换行
+
+<p className="release-meta"><time dateTime="2026-08-12">2026 年 8 月 12 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.1.1">发布详情</a></p>
+
+- 礼物消息支持自动换行，较长的用户名和礼物内容不再挤在同一行。
+
+</section>
+
+<section className="release-entry">
+
+### 3.1.0 · 大屏模式
+
+<p className="release-meta"><time dateTime="2026-08-04">2026 年 8 月 4 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.1.0">发布详情</a></p>
+
+- 新增大屏（Dashboard）模式，可通过主窗口顶部按钮切换，将弹幕、礼物、醒目留言等面板集中展示。
+- 支持滚动查看统计图表，优化大屏状态保留和弹幕增量更新。
+- 优化断线重连机制，连续重连失败时逐步延长重试间隔。
+
+</section>
+
+## 3.0 系列
+
+<details className="release-archive">
+<summary>展开 3.0 系列的 12 次更新</summary>
+
+<section className="release-entry">
+
+**3.0.12 · 登录接口适配**
+
+<p className="release-meta"><time dateTime="2026-08-03">2026 年 8 月 3 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.0.12">发布详情</a></p>
+
+- 适配 B 站扫码登录接口变化，修复扫码登录失败的问题。
+
+</section>
+
+<section className="release-entry">
+
+**3.0.11 · 弹幕连接稳定性**
+
+<p className="release-meta"><time dateTime="2026-08-03">2026 年 8 月 3 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.0.11">发布详情</a></p>
+
+- 优化弹幕连接线路选择、鉴权和心跳处理，提高连接稳定性。
+
+</section>
+
+<section className="release-entry">
+
+**3.0.10 · 礼物消息兼容**
+
+<p className="release-meta"><time dateTime="2026-07-22">2026 年 7 月 22 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.0.10">发布详情</a></p>
+
+- 适配 B 站新版礼物消息格式，修复收到礼物却无法显示的问题。
+
+</section>
+
+<section className="release-entry">
+
+**3.0.9 · Linux 启动修复**
+
+<p className="release-meta"><time dateTime="2026-05-13">2026 年 5 月 13 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.0.9">发布详情</a></p>
+
+- 修复 Linux 下因依赖问题导致的启动崩溃，并调整 Arch Linux 安装包的依赖兼容处理。
+
+</section>
+
+<section className="release-entry">
+
+**3.0.8 · macOS 启动修复**
+
+<p className="release-meta"><time dateTime="2026-05-12">2026 年 5 月 12 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.0.8">发布详情</a></p>
+
+- 调整 macOS 网络请求的依赖方式，修复未安装 Homebrew OpenSSL 时可能无法启动的问题。
+
+</section>
+
+<section className="release-entry">
+
+**3.0.6 · 弹幕排版与视频链接**
+
+<p className="release-meta"><time dateTime="2026-02-28">2026 年 2 月 28 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.0.6">发布详情</a></p>
+
+- 修复弹幕内容换行，以及 BV 视频链接在弹幕分段中的渲染问题。
+
+</section>
+
+<section className="release-entry">
+
+**3.0.5 · 跨直播间弹幕镜像**
+
+<p className="release-meta"><time dateTime="2026-02-14">2026 年 2 月 14 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.0.5">发布详情</a></p>
+
+- 支持跨直播间弹幕镜像消息的识别与展示。
+
+</section>
+
+<section className="release-entry">
+
+**3.0.4 · 鼠标穿透**
+
+<p className="release-meta"><time dateTime="2026-02-12">2026 年 2 月 12 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.0.4">发布详情</a></p>
+
+- 新增窗口鼠标穿透功能，可通过托盘菜单开启或关闭。
+- 精简模式下隐藏主窗口的弹幕输入栏。
+
+</section>
+
+<section className="release-entry">
+
+**3.0.3 · 弹幕显示优化**
+
+<p className="release-meta"><time dateTime="2026-02-10">2026 年 2 月 10 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.0.3">发布详情</a></p>
+
+- 修复弹幕内容换行和弹幕列表持续滚动的问题。
+- 调整主窗口中的醒目留言样式，降低主窗口的最小高度。
+
+</section>
+
+<section className="release-entry">
+
+**3.0.2 · 直播间状态提醒**
+
+<p className="release-meta"><time dateTime="2026-02-08">2026 年 2 月 8 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.0.2">发布详情</a></p>
+
+- 支持显示直播间警告与直播被切断的提示。
+
+</section>
+
+<section className="release-entry">
+
+**3.0.1 · 直播间标题编辑**
+
+<p className="release-meta"><time dateTime="2026-02-08">2026 年 2 月 8 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.0.1">发布详情</a></p>
+
+- 修复直播间标题无法编辑的问题。
+
+</section>
+
+<section className="release-entry">
+
+**3.0.0 · 全新桌面版本**
+
+<p className="release-meta"><time dateTime="2026-02-07">2026 年 2 月 7 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v3.0.0">发布详情</a></p>
+
+- 使用 Rust 与 GPUI 重写桌面应用，降低资源占用。
+- 以全新界面提供弹幕、礼物、醒目留言及直播间管理功能；后续版本持续补齐功能和兼容性。
+
+</section>
+
+</details>
+
+## 2.x 历史版本
+
+<details className="release-archive">
+<summary>展开 2.x 历史版本的 13 次更新</summary>
+
+<section className="release-entry">
+
+**2.4.4 · 动态表情**
+
+<p className="release-meta"><time dateTime="2026-01-12">2026 年 1 月 12 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v2.4.4">发布详情</a></p>
+
+- 增加部分动态表情的支持。
+
+</section>
+
+<section className="release-entry">
+
+**2.4.3 · 推流信息与开关播**
+
+<p className="release-meta"><time dateTime="2025-09-02">2025 年 9 月 2 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v2.4.3">发布详情</a></p>
+
+- 新增开播后复制推流地址、推流密钥的功能。
+- 修复开始直播和停止直播功能。
+
+</section>
+
+<section className="release-entry">
+
+**2.4.2 · 登录与弹幕连接**
+
+<p className="release-meta"><time dateTime="2025-06-28">2025 年 6 月 28 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v2.4.2">发布详情</a></p>
+
+- 适配弹幕接口变化，修复扫码登录或弹幕连接失败的问题。
+
+</section>
+
+<section className="release-entry">
+
+**2.4.1 · 弹幕接口签名**
+
+<p className="release-meta"><time dateTime="2025-05-27">2025 年 5 月 27 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v2.4.1">发布详情</a></p>
+
+- 适配弹幕接口的签名要求，修复登录失败、无法获取弹幕流的问题。
+
+</section>
+
+<section className="release-entry">
+
+**2.4.0 · 更多语音播报方式**
+
+<p className="release-meta"><time dateTime="2025-05-25">2025 年 5 月 25 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v2.4.0">发布详情</a></p>
+
+- 新增阿里云 TTS 和自定义 TTS 接口支持。
+- 优化界面渲染与动画表现。
+
+</section>
+
+<section className="release-entry">
+
+**2.3.0 · 插件扩展**
+
+<p className="release-meta"><time dateTime="2025-04-23">2025 年 4 月 23 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v2.3.0">发布详情</a></p>
+
+- 新增实验性插件功能，支持安装、管理插件并接收直播事件，提供示例插件。
+- 修复登录失效或未登录时应用无法打开的问题。
+- 修复普通用户进入直播间被错误显示为舰长入场的问题。
+
+</section>
+
+<section className="release-entry">
+
+**2.2.1 · 观众数与输入体验**
+
+<p className="release-meta"><time dateTime="2024-12-22">2024 年 12 月 22 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v2.2.1">发布详情</a></p>
+
+- 主窗口人数改为直播间观众数，与 B 站直播间显示口径一致。
+- 优化弹幕输入框聚焦后的展开效果，并关闭输入框的拼写检查和滚动条。
+- 优化启动顺序，减少检查更新时出现空白窗口的问题。
+
+</section>
+
+<section className="release-entry">
+
+**2.2.0 · 语音播报**
+
+<p className="release-meta"><time dateTime="2024-08-20">2024 年 8 月 20 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v2.2.0">发布详情</a></p>
+
+- 新增实验性 TTS 语音播报支持，并提供国内更新下载地址。
+- 修复窗口置顶配置无法保存的问题。
+- 修复交互消息样式，并更新赞助页面链接。
+
+</section>
+
+<section className="release-entry">
+
+**2.1.3 · 消息兼容与重连**
+
+<p className="release-meta"><time dateTime="2024-06-04">2024 年 6 月 4 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v2.1.3">发布详情</a></p>
+
+- 适配 B 站弹幕消息格式，优化断线重连。
+- 修复醒目留言窗口的清空按钮无效的问题。
+
+</section>
+
+<section className="release-entry">
+
+**2.1.2 · 多直播间连接修复**
+
+<p className="release-meta"><time dateTime="2024-05-22">2024 年 5 月 22 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v2.1.2">发布详情</a></p>
+
+- 修复切换直播间后旧连接未关闭，导致不同直播间弹幕混在一起的问题。
+- 修复关闭弹幕聚合后仍继续聚合的问题。
+
+</section>
+
+<section className="release-entry">
+
+**2.1.1 · 入场信息与断线恢复**
+
+<p className="release-meta"><time dateTime="2024-01-28">2024 年 1 月 28 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v2.1.1">发布详情</a></p>
+
+- 修复普通用户被误识别为舰长的入场信息。
+- 修复弹幕断线重连不生效的问题，并增加初始化请求失败后的重试。
+
+</section>
+
+<section className="release-entry">
+
+**2.1.0 · 高能榜与入场提示**
+
+<p className="release-meta"><time dateTime="2024-01-25">2024 年 1 月 25 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v2.1.0">发布详情</a></p>
+
+- 新增高能榜窗口。
+- 区分普通入房信息与舰长入场特效，并支持在设置中调整。
+- 修复带翻译的醒目留言重复显示的问题。
+
+</section>
+
+<section className="release-entry">
+
+**2.0.0 · 多直播间与界面升级**
+
+<p className="release-meta"><time dateTime="2024-01-14">2024 年 1 月 14 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v2.0.0">发布详情</a></p>
+
+- 新增 Linux 支持，并重新整理应用界面与设置。
+- 支持聚合多个直播间的弹幕，以及切换直播间后的数据清理和重新连接。
+- 支持修改直播间标题、开始或停止直播，并提供弹幕输入命令。
+- 新增主题、字体、字号、精简模式和窗口鼠标穿透等外观与窗口设置。
+- 支持查看观众发言记录和互动频率，完善礼物、舰长及醒目留言记录。
+- 新增日志、启动更新检查和消息保留数量等高级设置。
+
+</section>
+
+</details>
+
+## 1.x 历史版本
+
+<details className="release-archive">
+<summary>展开 1.x 历史版本的 11 次更新</summary>
+
+<section className="release-entry">
+
+**1.4.1 · 扫码登录修复**
+
+<p className="release-meta"><time dateTime="2023-12-11">2023 年 12 月 11 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v1.4.1">发布详情</a></p>
+
+- 适配 B 站扫码登录接口变化。
+
+</section>
+
+<section className="release-entry">
+
+**1.4.0 · 二维码登录**
+
+<p className="release-meta"><time dateTime="2023-07-07">2023 年 7 月 7 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v1.4.0">发布详情</a></p>
+
+- 新增二维码扫码登录。
+
+</section>
+
+<section className="release-entry">
+
+**1.3.1 · 滚动与托盘修复**
+
+<p className="release-meta"><time dateTime="2023-03-07">2023 年 3 月 7 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v1.3.1">发布详情</a></p>
+
+- 修复平滑滚动无法滚动到底部，以及 macOS 托盘图标过大的问题。
+- 更新国内下载地址，增加关于和检查更新菜单。
+
+</section>
+
+<section className="release-entry">
+
+**1.3.0 · 设置窗口与桌面交互**
+
+<p className="release-meta"><time dateTime="2023-02-28">2023 年 2 月 28 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v1.3.0">发布详情</a></p>
+
+- 新增独立设置窗口、主窗口最小化按钮和托盘菜单，支持从托盘调整鼠标穿透。
+- 弹幕改为平滑滚动，弹幕和醒目留言中的 BV 链接支持直接打开。
+- 礼物消息增加金额显示；移除原有完整显示模式，并将热度值位置改为开播设置入口。
+
+</section>
+
+<section className="release-entry">
+
+**1.2.8 · 版本检测**
+
+<p className="release-meta"><time dateTime="2022-09-30">2022 年 9 月 30 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v1.2.8">发布详情</a></p>
+
+- 新增版本更新检测。
+
+</section>
+
+<section className="release-entry">
+
+**1.2.7 · 留言与舰长消息修复**
+
+<p className="release-meta"><time dateTime="2022-09-30">2022 年 9 月 30 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v1.2.7">发布详情</a></p>
+
+- 修复多条醒目留言的显示、礼物删除及舰长购买消息处理问题。
+
+</section>
+
+<section className="release-entry">
+
+**1.2.6 · 舰长信息缓存**
+
+<p className="release-meta"><time dateTime="2022-09-20">2022 年 9 月 20 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v1.2.6">发布详情</a></p>
+
+- 首次获取舰长信息后保存结果，避免后续预加载时重复查询。
+
+</section>
+
+<section className="release-entry">
+
+**1.2.5 · 舰长与用户信息兼容**
+
+<p className="release-meta"><time dateTime="2022-09-20">2022 年 9 月 20 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v1.2.5">发布详情</a></p>
+
+- 适配消息类型变化，修复舰长消息不显示的问题。
+- 调整用户信息获取逻辑，兼容部分接口无法匿名使用的变化。
+
+</section>
+
+<section className="release-entry">
+
+**1.2.4 · 浅色主题**
+
+<p className="release-meta"><time dateTime="2022-07-15">2022 年 7 月 15 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v1.2.4">发布详情</a></p>
+
+- 新增浅色主题。
+
+</section>
+
+<section className="release-entry">
+
+**1.2.3 · 接口与依赖更新**
+
+<p className="release-meta"><time dateTime="2022-06-15">2022 年 6 月 15 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v1.2.3">发布详情</a></p>
+
+- 将相关 API 请求改为 HTTPS，并更新依赖。
+
+</section>
+
+<section className="release-entry">
+
+**1.2.2 · 礼物数据导出**
+
+<p className="release-meta"><time dateTime="2022-03-21">2022 年 3 月 21 日</time><a href="https://github.com/powerlive-io/JLiverTool/releases/tag/v1.2.2">发布详情</a></p>
+
+- 新增礼物数据导出功能。
+
+</section>
+
+</details>
+
+## 尚未发布
+
+以下变化已进入开发分支，**尚未包含在 3.2.1 正式版中**。
+
+- 新增 PowerLive 问题反馈入口，可附带应用日志提交问题。
+- 文档站迁移至 Fumadocs，优化导航、搜索与功能说明，并支持截图局部预览和原图查看。
+
+</div>
+
+更早的版本、安装包与完整记录可在 [GitHub 发布归档](https://github.com/powerlive-io/JLiverTool/releases)查看。

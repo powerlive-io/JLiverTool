@@ -103,6 +103,8 @@ npm run docs:dev
 
 首页的界面展示位于 `docs/components/live-demo.tsx`，按 GPUI 主窗口布局用 HTML/CSS 复刻，仅使用本地模拟数据。
 
+更新笔记在 `docs/changelog.mdx` 中人工维护，不从提交记录自动生成。发布新版本时，根据对应标签和 GitHub Release 整理中文功能说明，使用北京时间的发布日期，并将已发布条目从「尚未发布」移入对应版本。发布工作流仅创建带安装包的草稿，发布前需手动填写该版本的发布说明。
+
 ```bash
 npm run docs:typecheck
 npm run docs:build

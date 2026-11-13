@@ -151,4 +151,5 @@ jobs:
           artifacts: "artifacts/**/*.dmg,artifacts/**/*.exe,artifacts/**/*.deb,artifacts/**/*.AppImage,artifacts/**/PKGBUILD,artifacts/**/*_x86_64.tar.gz"
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
-          generateReleaseNotes: true
+          # Release notes are curated manually alongside docs/changelog.mdx.
+          generateReleaseNotes: false
