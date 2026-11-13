@@ -38,7 +38,7 @@ export default defineConfig({
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/Xinrea/JLiverTool' },
+      { icon: 'github', link: 'https://github.com/powerlive-io/JLiverTool' },
     ],
   },
 })

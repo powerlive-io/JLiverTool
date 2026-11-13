@@ -2,7 +2,7 @@
 
 ## 安装
 
-前往 [Releases 页面](https://github.com/Xinrea/JLiverTool/releases)下载最新版本的安装包，目前提供 Windows、Linux 和 MacOS 三个平台的安装包。
+前往 [Releases 页面](https://github.com/powerlive-io/JLiverTool/releases)下载最新版本的安装包，目前提供 Windows、Linux 和 MacOS 三个平台的安装包。
 
 ## 基础设置
 
@@ -14,6 +14,6 @@
 
 ## 软件更新
 
-在设置窗口的关于页面，你可以查看当前软件的当前版本以及最新版本，点击最新版本即可前往 [Releases 页面](https://github.com/Xinrea/JLiverTool/releases)下载最新版本的安装包。
+在设置窗口的关于页面，你可以查看当前软件的当前版本以及最新版本，点击最新版本即可前往 [Releases 页面](https://github.com/powerlive-io/JLiverTool/releases)下载最新版本的安装包。
 
 关于页面提供 `启动时检查更新` 的选项，开启后每次启动软件时会自动检查是否有新版本可用。

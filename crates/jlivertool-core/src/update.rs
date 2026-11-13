@@ -6,7 +6,7 @@ use serde::Deserialize;
 use std::time::Duration;
 use tracing::{debug, info, warn};
 
-const GITHUB_API_URL: &str = "https://api.github.com/repos/Xinrea/JLiverTool/releases/latest";
+const GITHUB_API_URL: &str = "https://api.github.com/repos/powerlive-io/JLiverTool/releases/latest";
 
 pub mod install;
 

@@ -1,15 +1,15 @@
 # 插件文档
 
-插件样例：[测试插件](https://github.com/Xinrea/JLiverTool/tree/master/plugins/test-plugin)
+插件样例：[测试插件](https://github.com/powerlive-io/JLiverTool/tree/master/plugins/test-plugin)
 
 ## 使用 Agent Skill 开发插件
 
-仓库内置了一份 Agent Skill：[`skills/jlivertool-plugin`](https://github.com/Xinrea/JLiverTool/tree/master/skills/jlivertool-plugin)。它把本页的插件规范（`meta.json`、`jliverAPI`、事件字段）连同本地调试、发布、验收的完整流程整理成 Agent 可以直接执行的步骤，并附带一个最小插件模板。
+仓库内置了一份 Agent Skill：[`skills/jlivertool-plugin`](https://github.com/powerlive-io/JLiverTool/tree/master/skills/jlivertool-plugin)。它把本页的插件规范（`meta.json`、`jliverAPI`、事件字段）连同本地调试、发布、验收的完整流程整理成 Agent 可以直接执行的步骤，并附带一个最小插件模板。
 
 一键安装（需要 Node.js，在任意目录执行一次即可对所有项目生效）：
 
 ```bash
-npx skills add Xinrea/JLiverTool --skill jlivertool-plugin -g -y
+npx skills add powerlive-io/JLiverTool --skill jlivertool-plugin -g -y
 ```
 
 装好后直接向 Agent 描述需求即可，例如「帮我写一个统计弹幕关键词并实时显示词云的 JLiverTool 插件」；Agent 会按本页规范生成 `meta.json` 和 `index.html`，并告诉你如何放进插件目录验证。
@@ -18,9 +18,9 @@ npx skills add Xinrea/JLiverTool --skill jlivertool-plugin -g -y
 
 | 目的 | 命令 |
 | --- | --- |
-| 先看看仓库里有哪些 skill | `npx skills add Xinrea/JLiverTool --list` |
-| 只装到当前目录的 Agent 目录，不装到全局 | `npx skills add Xinrea/JLiverTool --skill jlivertool-plugin` |
-| 不安装，只让指定 Agent 用一次 | `npx skills use Xinrea/JLiverTool@jlivertool-plugin --agent claude-code` |
+| 先看看仓库里有哪些 skill | `npx skills add powerlive-io/JLiverTool --list` |
+| 只装到当前目录的 Agent 目录，不装到全局 | `npx skills add powerlive-io/JLiverTool --skill jlivertool-plugin` |
+| 不安装，只让指定 Agent 用一次 | `npx skills use powerlive-io/JLiverTool@jlivertool-plugin --agent claude-code` |
 | 更新 / 卸载 | `npx skills update jlivertool-plugin` / `npx skills remove jlivertool-plugin -g` |
 
 `skills` 是通用的 Agent Skill 管理工具，会自动识别本机已安装的编码 Agent（Claude Code、Codex、Cursor 等），把 skill 安装到对应目录（如 `~/.claude/skills/`）。不想用工具时，直接把 `skills/jlivertool-plugin` 目录复制到你的 Agent 的 skills 目录同样可以使用。
@@ -31,7 +31,7 @@ npx skills add Xinrea/JLiverTool --skill jlivertool-plugin -g -y
 
 插件是纯静态网页，安装就是把插件目录放进应用数据目录的 `plugins/` 下，两种方式都可以：
 
-1. **从 GitHub 导入**：在「设置 -> 插件管理 -> 从 GitHub 导入插件」中粘贴插件目录的链接（形如 `https://github.com/Xinrea/JLiverTool/tree/master/plugins/wordcloud`）后点「导入」。应用会递归下载该目录下的所有文件，保存为 `plugins/<链接最后一段>/`；重复导入会覆盖同名目录，所以插件更新时重新导入同一链接即可。
+1. **从 GitHub 导入**：在「设置 -> 插件管理 -> 从 GitHub 导入插件」中粘贴插件目录的链接（形如 `https://github.com/powerlive-io/JLiverTool/tree/master/plugins/wordcloud`）后点「导入」。应用会递归下载该目录下的所有文件，保存为 `plugins/<链接最后一段>/`；重复导入会覆盖同名目录，所以插件更新时重新导入同一链接即可。
 2. **手动安装**：把插件目录（其中必须包含 `meta.json`）复制到 `plugins/` 下，再点「刷新」。
 
 安装成功后列表会显示插件名称、作者、版本与描述，点「打开」即在系统默认浏览器中使用，点「删除」会同时删除磁盘上的插件目录。如果插件没有出现在列表里，检查 `meta.json` 是否为合法 JSON、`index` 指向的入口文件是否存在。
@@ -163,7 +163,7 @@ unregister();
 
 **示例：**
 ```javascript
-await jliverAPI.util.openUrl('https://github.com/Xinrea/JLiverTool');
+await jliverAPI.util.openUrl('https://github.com/powerlive-io/JLiverTool');
 ```
 
 ### util.getServerInfo()

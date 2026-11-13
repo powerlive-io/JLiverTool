@@ -7,7 +7,7 @@ version = "3.2.1"
 edition = "2021"
 authors = ["JLiverTool Contributors"]
 license = "MIT"
-repository = "https://github.com/your-repo/jlivertool"
+repository = "https://github.com/powerlive-io/JLiverTool"
 
 [workspace.dependencies]
 # GPUI Framework

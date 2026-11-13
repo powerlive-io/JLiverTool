@@ -4,6 +4,6 @@
     "author": "JLiverTool",
     "desc": "A test plugin to verify the plugin system works",
     "version": "1.0.0",
-    "url": "https://github.com/Xinrea/JLiverTool",
+    "url": "https://github.com/powerlive-io/JLiverTool",
     "index": "index.html"
 }

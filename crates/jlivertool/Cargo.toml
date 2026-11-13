@@ -52,7 +52,7 @@ winresource = "0.1"
 product-name = "JLiverTool"
 identifier = "com.xinrea.jlivertool"
 description = "Simple Bilibili Danmaku Tool"
-homepage = "https://github.com/Xinrea/JLiveTool"
+homepage = "https://github.com/powerlive-io/JLiverTool"
 icons = ["../../icons/icon.icns", "../../icons/icon.ico", "../../icons/icon.png"]
 
 [package.metadata.packager.macos]

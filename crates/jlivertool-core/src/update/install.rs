@@ -143,7 +143,7 @@ fn select_asset<'a>(
     ensure!(
         asset
             .browser_download_url
-            .starts_with("https://github.com/Xinrea/JLiverTool/releases/download/"),
+            .starts_with("https://github.com/powerlive-io/JLiverTool/releases/download/"),
         "安装包地址无效"
     );
     expected_digest(asset)?;
@@ -555,7 +555,7 @@ mod tests {
             name: name.into(),
             size: body.len() as u64,
             browser_download_url: format!(
-                "https://github.com/Xinrea/JLiverTool/releases/download/v9.0.0/{name}"
+                "https://github.com/powerlive-io/JLiverTool/releases/download/v9.0.0/{name}"
             ),
             digest: Some(format!("sha256:{:x}", Sha256::digest(body))),
         }
@@ -599,9 +599,16 @@ mod tests {
 
     #[test]
     fn rejects_release_paths_outside_expected_repository() {
-        let mut asset = asset("JLiverTool_9.0.0_aarch64.dmg", b"dmg");
-        asset.browser_download_url = "https://example.com/update.dmg".into();
-        assert!(select_asset(&[asset], &InstallKind::MacBundle, "aarch64").is_err());
+        for url in [
+            "https://example.com/update.dmg",
+            "https://github.com/another-owner/JLiverTool/releases/download/v9.0.0/update.dmg",
+            "https://github.com/powerlive-io/another-repo/releases/download/v9.0.0/update.dmg",
+            "https://github.com/powerlive-io/JLiverTool/releases/download-evil/update.dmg",
+        ] {
+            let mut asset = asset("JLiverTool_9.0.0_aarch64.dmg", b"dmg");
+            asset.browser_download_url = url.into();
+            assert!(select_asset(&[asset], &InstallKind::MacBundle, "aarch64").is_err());
+        }
     }
 
     #[test]
