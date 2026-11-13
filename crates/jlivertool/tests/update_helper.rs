@@ -47,7 +47,7 @@ fn exercise_helper(broken_update: bool, legacy_release: bool) {
     let manifest = root.join("manifest.json");
     fs::write(&manifest, serde_json::to_vec(&serde_json::json!({
         "kind": "PortableBinary", "target": target, "payload": payload,
-        "version": "9.0.0", "release_url": "https://github.com/Xinrea/JLiverTool/releases/tag/v9.0.0"
+        "version": "9.0.0", "release_url": "https://github.com/powerlive-io/JLiverTool/releases/tag/v9.0.0"
     })).unwrap()).unwrap();
     let mut helper = Command::new(env!("CARGO_BIN_EXE_jlivertool"))
         .arg("--apply-update")

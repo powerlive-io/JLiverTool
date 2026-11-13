@@ -2,7 +2,7 @@
   "name": "jlivertool",
   "version": "develop",
   "description": "Simple Bilibili Danmaku Tool",
-  "homepage": "https://github.com/Xinrea/JLiveTool",
+  "homepage": "https://github.com/powerlive-io/JLiverTool",
   "private": true,
   "scripts": {
     "docs:dev": "vitepress dev docs",

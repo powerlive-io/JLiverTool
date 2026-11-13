@@ -27,7 +27,7 @@ JLiverTool 插件就是一个**静态网页**：没有构建步骤、不引入 n
 | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `meta.json` 字段、`jliverAPI` 全部方法、事件频道与字段、底层 WebSocket 协议 | [references/api.md](references/api.md)                                                                               |
 | 可直接复制的最小插件                                                        | [template/meta.json](template/meta.json)、[template/index.html](template/index.html)                                 |
-| 在线文档                                                                    | [https://xinrea.github.io/JLiverTool/plugin-document.html](https://xinrea.github.io/JLiverTool/plugin-document.html) |
+| 在线文档                                                                    | [https://powerlive-io.github.io/JLiverTool/plugin-document.html](https://powerlive-io.github.io/JLiverTool/plugin-document.html) |
 
 ## 工作流程
 

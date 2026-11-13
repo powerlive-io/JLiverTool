@@ -1,9 +1,9 @@
 # JLiverTool
 
-[![GitHub release (latest by date)](https://img.shields.io/github/downloads/xinrea/jlivertool/total.svg)](https://github.com/Xinrea/JLiverTool/releases)
+[![GitHub release (latest by date)](https://img.shields.io/github/downloads/powerlive-io/JLiverTool/total.svg)](https://github.com/powerlive-io/JLiverTool/releases)
 
 > [!NOTE]
-> 本项目自 3.0.0 版本开始，使用 Rust 重构，并使用 GPUI 框架；旧 Electron 版本请参考 [2.4.4](https://github.com/Xinrea/JLiverTool/releases/tag/2.4.4) 版本。
+> 本项目自 3.0.0 版本开始，使用 Rust 重构，并使用 GPUI 框架；旧 Electron 版本请参考 [2.4.4](https://github.com/powerlive-io/JLiverTool/releases/tag/2.4.4) 版本。
 
 ## 使用说明
 
@@ -54,17 +54,17 @@
 
 ## 插件
 
-插件是放在应用数据目录 `plugins/` 下的静态网页（`meta.json` + `index.html`），由应用内置的本地服务器提供，在系统默认浏览器中打开，通过自动注入的 `jliverAPI` 接收弹幕、礼物、舰长、醒目留言等事件。开发文档见 [插件文档](https://xinrea.github.io/JLiverTool/plugin-document.html)，完整示例见 [`plugins/`](https://github.com/Xinrea/JLiverTool/tree/master/plugins)。
+插件是放在应用数据目录 `plugins/` 下的静态网页（`meta.json` + `index.html`），由应用内置的本地服务器提供，在系统默认浏览器中打开，通过自动注入的 `jliverAPI` 接收弹幕、礼物、舰长、醒目留言等事件。开发文档见 [插件文档](https://powerlive-io.github.io/JLiverTool/plugin-document.html)，完整示例见 [`plugins/`](https://github.com/powerlive-io/JLiverTool/tree/master/plugins)。
 
 ### 让 AI Agent 写插件
 
-仓库内置了一份 [Agent Skill](https://github.com/Xinrea/JLiverTool/tree/master/skills/jlivertool-plugin)，一条命令即可装到本机的编码 Agent（Claude Code、Codex、Cursor 等，需要 Node.js）：
+仓库内置了一份 [Agent Skill](https://github.com/powerlive-io/JLiverTool/tree/master/skills/jlivertool-plugin)，一条命令即可装到本机的编码 Agent（Claude Code、Codex、Cursor 等，需要 Node.js）：
 
 ```bash
-npx skills add Xinrea/JLiverTool --skill jlivertool-plugin -g -y
+npx skills add powerlive-io/JLiverTool --skill jlivertool-plugin -g -y
 ```
 
-安装后直接向 Agent 描述需求即可，例如「写一个把弹幕画成像素画的插件」。Skill 用法与更多命令见[插件文档](https://xinrea.github.io/JLiverTool/plugin-document.html)。
+安装后直接向 Agent 描述需求即可，例如「写一个把弹幕画成像素画的插件」。Skill 用法与更多命令见[插件文档](https://powerlive-io.github.io/JLiverTool/plugin-document.html)。
 
 ## 安装说明
 

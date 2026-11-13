@@ -2579,7 +2579,7 @@ impl SettingView {
                             div()
                                 .text_size(px(11.0))
                                 .text_color(Colors::text_muted())
-                                .child("https://github.com/Xinrea/JLiverTool/tree/master/plugins/wordcloud"),
+                                .child("https://github.com/powerlive-io/JLiverTool/tree/master/plugins/wordcloud"),
                         )
                         .child(
                             h_flex()
@@ -3487,7 +3487,7 @@ impl SettingView {
                                         .bg(Colors::bg_secondary())
                                         .hover(|s| s.bg(Colors::bg_hover()))
                                         .on_click(cx.listener(|_this, _event, _window, cx| {
-                                            cx.open_url("https://github.com/Xinrea/JLiverTool");
+                                            cx.open_url("https://github.com/powerlive-io/JLiverTool");
                                         }))
                                         .child(
                                             h_flex()
@@ -3843,7 +3843,7 @@ mod update_tests {
             settings.on_check_update(move |_, _| { tx.send(()).unwrap(); });
             settings.set_update_status(UpdateStatus::UpdateAvailable {
                 version: "9.0.0".into(),
-                url: "https://github.com/Xinrea/JLiverTool/releases/tag/v9.0.0".into(),
+                url: "https://github.com/powerlive-io/JLiverTool/releases/tag/v9.0.0".into(),
             }, cx);
         });
         cx.run_until_parked();

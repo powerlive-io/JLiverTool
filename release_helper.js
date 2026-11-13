@@ -1,7 +1,7 @@
 // get release list from github api
 // and then write it as a simple html file
 // auto download all release assets to ./release/tagname/
-// https://api.github.com/repos/xinrea/JLiverTool/releases
+// https://api.github.com/repos/powerlive-io/JLiverTool/releases
 
 const https = require("https");
 const fs = require("fs");
@@ -63,7 +63,7 @@ function downloadReleaseAssets(release) {
 const options = {
   hostname: "api.github.com",
   port: 443,
-  path: "/repos/xinrea/JLiverTool/releases",
+  path: "/repos/powerlive-io/JLiverTool/releases",
   method: "GET",
   headers: {
     "User-Agent": "Node.js",

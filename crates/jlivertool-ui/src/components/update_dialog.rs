@@ -216,7 +216,7 @@ mod tests {
         dialog.update(cx, |dialog, cx| {
             dialog.show(
                 "9.0.0".into(),
-                "https://github.com/Xinrea/JLiverTool/releases/tag/v9.0.0".into(),
+                "https://github.com/powerlive-io/JLiverTool/releases/tag/v9.0.0".into(),
                 cx,
             )
         });
@@ -227,7 +227,7 @@ mod tests {
         cx.simulate_click(notes.center(), Modifiers::default());
         assert_eq!(
             cx.opened_url().as_deref(),
-            Some("https://github.com/Xinrea/JLiverTool/releases/tag/v9.0.0")
+            Some("https://github.com/powerlive-io/JLiverTool/releases/tag/v9.0.0")
         );
         assert!(
             rx.try_recv().is_err(),
