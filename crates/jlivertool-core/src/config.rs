@@ -130,6 +130,9 @@ pub struct Config {
     #[serde(default)]
     pub interact_display: bool,
 
+    #[serde(default = "default_gift_display")]
+    pub gift_display: bool,
+
     #[serde(default = "default_theme")]
     pub theme: String,
 
@@ -225,6 +228,10 @@ fn default_medal_display() -> bool {
     true
 }
 
+fn default_gift_display() -> bool {
+    true
+}
+
 fn default_theme() -> String {
     "dark".to_string()
 }
@@ -254,6 +261,7 @@ impl Default for Config {
             lite_mode: false,
             medal_display: default_medal_display(),
             interact_display: false,
+            gift_display: default_gift_display(),
             theme: default_theme(),
             font_size: default_font_size(),
             plugin_list: Vec::new(),
@@ -595,5 +603,26 @@ impl ConfigStore {
 impl Default for ConfigStore {
     fn default() -> Self {
         Self::new().expect("Failed to create config store")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn gift_display_defaults_on_and_remembers_an_explicit_opt_out() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(CONFIG_FILENAME);
+        assert!(Config::default().gift_display);
+
+        std::fs::write(&path, r#"{"lite_mode":true}"#).unwrap();
+        let store = ConfigStore::with_path(path.clone()).unwrap();
+        assert!(store.get_config().gift_display);
+        store.set("gift_display", false).unwrap();
+
+        let saved = ConfigStore::with_path(path).unwrap().get_config();
+        assert!(!saved.gift_display);
+        assert!(saved.lite_mode);
     }
 }

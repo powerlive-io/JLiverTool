@@ -22,8 +22,8 @@ type RoomCallback = Arc<dyn Fn(u64, &mut Window, &mut App) + Send + Sync>;
 type StartLiveCallback = Arc<dyn Fn(u64, u64, &mut Window, &mut App) + Send + Sync>;
 /// Type alias for opacity/font size callbacks (f32 parameter)
 type FloatCallback = Arc<dyn Fn(f32, &mut Window, &mut App) + Send + Sync>;
-/// Type alias for window settings callback (5 bool parameters)
-type WindowSettingsCallback = Arc<dyn Fn(bool, bool, bool, bool, bool, &mut Window, &mut App) + Send + Sync>;
+/// Type alias for window display settings changes
+type WindowSettingsCallback = Arc<dyn Fn(&SettingsData, &mut Window, &mut App) + Send + Sync>;
 /// Type alias for theme callback (String parameter)
 type ThemeCallback = Arc<dyn Fn(String, &mut Window, &mut App) + Send + Sync>;
 /// Type alias for TTS enabled callback (3 bool parameters: danmu, gift, superchat)
@@ -230,6 +230,7 @@ pub struct ConfigValues {
     pub lite_mode: bool,
     pub medal_display: bool,
     pub interact_display: bool,
+    pub gift_display: bool,
     pub theme: String,
     pub font_size: f32,
     pub tts_enabled: bool,
@@ -245,6 +246,7 @@ pub struct SettingsData {
     pub lite_mode: bool,
     pub medal_display: bool,
     pub interact_display: bool,
+    pub gift_display: bool,
     pub guard_effect: bool,
     pub level_effect: bool,
     // General settings
@@ -266,6 +268,7 @@ impl Default for SettingsData {
             lite_mode: false,
             medal_display: true,
             interact_display: false,
+            gift_display: true,
             guard_effect: true,
             level_effect: false,
             always_on_top: false,
@@ -483,10 +486,9 @@ impl SettingView {
     }
 
     /// Set callback for window settings changes
-    /// Parameters: lite_mode, medal_display, interact_display, guard_effect, level_effect
     pub fn on_window_settings_change<F>(&mut self, callback: F)
     where
-        F: Fn(bool, bool, bool, bool, bool, &mut Window, &mut App) + Send + Sync + 'static,
+        F: Fn(&SettingsData, &mut Window, &mut App) + Send + Sync + 'static,
     {
         self.on_window_settings_change = Some(Arc::new(callback));
     }
@@ -689,16 +691,7 @@ impl SettingView {
     /// Notify window settings change
     fn notify_window_settings_change(&self, window: &mut Window, cx: &mut App) {
         if let Some(ref callback) = self.on_window_settings_change {
-            let settings = self.settings.read();
-            callback(
-                settings.lite_mode,
-                settings.medal_display,
-                settings.interact_display,
-                settings.guard_effect,
-                settings.level_effect,
-                window,
-                cx,
-            );
+            callback(&self.settings.read(), window, cx);
         }
     }
 
@@ -759,21 +752,7 @@ impl SettingView {
 
     /// Load config values
     pub fn load_config(&mut self, config: ConfigValues, cx: &mut Context<Self>) {
-        let mut settings = self.settings.write();
-        settings.always_on_top = config.always_on_top;
-        settings.guard_effect = config.guard_effect;
-        settings.level_effect = config.level_effect;
-        settings.opacity = config.opacity;
-        settings.lite_mode = config.lite_mode;
-        settings.medal_display = config.medal_display;
-        settings.interact_display = config.interact_display;
-        settings.theme = config.theme;
-        settings.font_size = config.font_size;
-        settings.tts_enabled = config.tts_enabled;
-        settings.gift_tts = config.tts_gift_enabled;
-        settings.sc_tts = config.tts_sc_enabled;
-        settings.tts_volume = config.tts_volume;
-        drop(settings);
+        self.set_config(config, cx);
         cx.notify();
     }
 
@@ -787,6 +766,7 @@ impl SettingView {
         settings.lite_mode = config.lite_mode;
         settings.medal_display = config.medal_display;
         settings.interact_display = config.interact_display;
+        settings.gift_display = config.gift_display;
         settings.theme = config.theme;
         settings.font_size = config.font_size;
         settings.tts_enabled = config.tts_enabled;
@@ -1858,6 +1838,7 @@ impl SettingView {
         let lite_mode = settings.read().lite_mode;
         let medal_display = settings.read().medal_display;
         let interact_display = settings.read().interact_display;
+        let gift_display = settings.read().gift_display;
         let guard_effect = settings.read().guard_effect;
         let level_effect = settings.read().level_effect;
 
@@ -1917,6 +1898,20 @@ impl SettingView {
                                     });
                                 }
                             }),
+                        ))
+                        .child(self.render_setting_row(
+                            "显示礼物",
+                            "关闭后仅隐藏礼物消息，不影响礼物记录",
+                            div().debug_selector(|| "gift-display-switch".into()).child(
+                                Switch::new("gift_display")
+                                    .accessibility_label("显示礼物")
+                                    .checked(gift_display)
+                                    .on_click(cx.listener(|view, checked: &bool, window, cx| {
+                                        view.settings.write().gift_display = *checked;
+                                        view.notify_window_settings_change(window, cx);
+                                        cx.notify();
+                                    })),
+                            ),
                         )),
                 ),
             )
@@ -3717,6 +3712,7 @@ impl Render for SettingView {
                                     let is_active = idx == active_tab;
                                     div()
                                         .id(SharedString::from(format!("tab-{}", idx)))
+                                        .debug_selector(move || tab.name().into())
                                         .w_full()
                                         .px_3()
                                         .py_2()

@@ -572,6 +572,7 @@ fn main() -> Result<()> {
             lite_mode: cfg.lite_mode,
             medal_display: cfg.medal_display,
             interact_display: cfg.interact_display,
+            gift_display: cfg.gift_display,
             theme: cfg.theme.clone(),
             font_size: cfg.font_size,
             tts_enabled: cfg.tts_enabled,
@@ -959,12 +960,12 @@ async fn handle_commands(
                 lite_mode,
                 medal_display,
                 interact_display,
+                gift_display,
                 guard_effect,
                 level_effect,
             } => {
                 info!(
-                    "Updating window settings: lite_mode={}, medal_display={}, interact_display={}, guard_effect={}, level_effect={}",
-                    lite_mode, medal_display, interact_display, guard_effect, level_effect
+                    "Updating window settings: lite_mode={lite_mode}, medal_display={medal_display}, interact_display={interact_display}, gift_display={gift_display}, guard_effect={guard_effect}, level_effect={level_effect}"
                 );
 
                 let config_write = config.write();
@@ -976,6 +977,9 @@ async fn handle_commands(
                 }
                 if let Err(e) = config_write.set("interact_display", interact_display) {
                     error!("Failed to save interact_display: {}", e);
+                }
+                if let Err(e) = config_write.set("gift_display", gift_display) {
+                    error!("Failed to save gift_display: {}", e);
                 }
                 if let Err(e) = config_write.set("guard_effect", guard_effect) {
                     error!("Failed to save guard_effect: {}", e);
