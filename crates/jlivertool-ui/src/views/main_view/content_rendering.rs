@@ -159,6 +159,27 @@ pub struct GiftTextRun {
     pub text: String,
 }
 
+/// Settings that affect which rows a danmu message occupies in either feed.
+#[derive(Clone, Copy, PartialEq)]
+pub(crate) struct DanmuRowOptions {
+    pub font_size: f32,
+    pub lite_mode: bool,
+    pub medal_display: bool,
+    pub gift_display: bool,
+}
+
+impl Default for DanmuRowOptions {
+    fn default() -> Self {
+        let config = jlivertool_core::config::Config::default();
+        Self {
+            font_size: config.font_size,
+            lite_mode: config.lite_mode,
+            medal_display: config.medal_display,
+            gift_display: config.gift_display,
+        }
+    }
+}
+
 /// Build the fixed-height rows used by danmu lists for the supplied width.
 ///
 /// Both the main window and dashboard use this so wrapping behavior remains
@@ -166,33 +187,37 @@ pub struct GiftTextRun {
 pub(crate) fn build_render_rows<'a>(
     messages: impl IntoIterator<Item = &'a DisplayMessage>,
     available_width: f32,
-    font_size: f32,
-    lite_mode: bool,
-    medal_display: bool,
+    options: DanmuRowOptions,
 ) -> Vec<RenderRow> {
     let mut rows = Vec::new();
     for message in messages {
-        append_message_rows(
-            &mut rows,
-            message,
-            available_width,
-            font_size,
-            lite_mode,
-            medal_display,
-        );
+        append_message_rows(&mut rows, message, available_width, options);
     }
     rows
 }
 
-/// Convert one display message into one or more fixed-height render rows.
+/// A hidden gift stays in the message history but occupies no render rows.
 pub(crate) fn append_message_rows(
     rows: &mut Vec<RenderRow>,
     message: &DisplayMessage,
     available_width: f32,
-    font_size: f32,
-    lite_mode: bool,
-    medal_display: bool,
+    options: DanmuRowOptions,
 ) {
+    let DanmuRowOptions {
+        font_size,
+        lite_mode,
+        medal_display,
+        gift_display,
+    } = options;
+    if !gift_display && matches!(message, DisplayMessage::Gift(_)) {
+        return;
+    }
+    // Until the panel is measured, keep visible messages in single rows.
+    if available_width <= 0.0 {
+        rows.push(RenderRow::Full(message.clone()));
+        return;
+    }
+
     match message {
         DisplayMessage::Danmu(danmu) => {
             let prefix_width =
@@ -748,21 +773,14 @@ mod tests {
                 let prefix = estimate_danmu_prefix_width(&danmu, 14.0, lite_mode, medal_display);
                 let emoji_size = 14.0 + if lite_mode { 2.0 } else { 6.0 };
                 let message = DisplayMessage::Danmu(danmu.clone());
-                let wide = build_render_rows(
-                    [&message],
-                    prefix + emoji_size,
-                    14.0,
+                let options = DanmuRowOptions {
                     lite_mode,
                     medal_display,
-                );
+                    ..Default::default()
+                };
+                let wide = build_render_rows([&message], prefix + emoji_size, options);
                 assert!(matches!(wide.as_slice(), [RenderRow::Full(_)]));
-                let narrow = build_render_rows(
-                    [&message],
-                    prefix + emoji_size - 1.0,
-                    14.0,
-                    lite_mode,
-                    medal_display,
-                );
+                let narrow = build_render_rows([&message], prefix + emoji_size - 1.0, options);
                 assert!(
                     matches!(narrow.as_slice(), [RenderRow::DanmuFirstLine { content_slice, .. }, RenderRow::DanmuEmoji { .. }] if content_slice.is_empty())
                 );
@@ -775,7 +793,7 @@ mod tests {
         let mut danmu = emoji_danmu();
         danmu.is_mirror = true;
         let width = estimate_danmu_prefix_width(&danmu, 14.0, false, true) + 20.0;
-        let rows = build_render_rows([&DisplayMessage::Danmu(danmu)], width, 14.0, false, true);
+        let rows = build_render_rows([&DisplayMessage::Danmu(danmu)], width, Default::default());
         assert!(matches!(
             rows.as_slice(),
             [
@@ -790,7 +808,7 @@ mod tests {
         let mut danmu = emoji_danmu();
         danmu.emoji_content.as_mut().unwrap().url.clear();
         let message = DisplayMessage::Danmu(danmu);
-        let rows = build_render_rows([&message], 100.0, 14.0, false, true);
+        let rows = build_render_rows([&message], 100.0, Default::default());
         assert!(rows.len() > 1);
         assert!(rows
             .iter()
@@ -826,7 +844,7 @@ mod tests {
     fn short_gift_stays_in_one_render_row() {
         let message = DisplayMessage::Gift(gift("花"));
         let mut rows = Vec::new();
-        append_message_rows(&mut rows, &message, 500.0, 14.0, false, true);
+        append_message_rows(&mut rows, &message, 500.0, Default::default());
         assert!(matches!(rows.as_slice(), [RenderRow::Full(_)]));
     }
 
@@ -842,9 +860,7 @@ mod tests {
             &mut rows,
             &DisplayMessage::Gift(gift),
             130.0,
-            14.0,
-            false,
-            true,
+            Default::default(),
         );
 
         assert!(rows.len() > 1);

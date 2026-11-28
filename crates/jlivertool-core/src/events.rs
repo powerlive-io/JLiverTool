@@ -60,6 +60,7 @@ pub enum Event {
         lite_mode: bool,
         medal_display: bool,
         interact_display: bool,
+        gift_display: bool,
         theme: String,
         font_size: f32,
         tts_enabled: bool,

@@ -51,6 +51,7 @@ pub enum UiCommand {
         lite_mode: bool,
         medal_display: bool,
         interact_display: bool,
+        gift_display: bool,
         guard_effect: bool,
         level_effect: bool,
     },

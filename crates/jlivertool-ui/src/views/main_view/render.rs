@@ -656,7 +656,7 @@ impl MainView {
                         }),
                     )),
             )
-            .when(!self.lite_mode, |el| el.child(
+            .when(!self.row_options.lite_mode, |el| el.child(
                 div()
                     .relative()
                     .w_full()
@@ -850,9 +850,9 @@ impl MainView {
         _window: &mut Window,
         _cx: &mut Context<Self>,
     ) -> impl IntoElement {
-        let font_size = self.font_size;
-        let lite_mode = self.lite_mode;
-        let medal_display = self.medal_display;
+        let font_size = self.row_options.font_size;
+        let lite_mode = self.row_options.lite_mode;
+        let medal_display = self.row_options.medal_display;
         let opacity = self.opacity;
         let scroll_handle = self.scroll_handle.clone();
         let selected_user = self.selected_user.clone();

@@ -1,6 +1,7 @@
 use crate::theme::Colors;
 use crate::views::main_view::{
-    DanmuListItemView, DisplayMessage, RenderRow, SelectedUserState, append_message_rows,
+    append_message_rows, DanmuListItemView, DanmuRowOptions, DisplayMessage, RenderRow,
+    SelectedUserState,
 };
 use gpui::*;
 use gpui_component::h_flex;
@@ -16,9 +17,7 @@ pub(crate) struct DashboardDanmuView {
     rows: Rc<Vec<RenderRow>>,
     scroll_handle: UniformListScrollHandle,
     pending_scroll_to_bottom: bool,
-    font_size: f32,
-    lite_mode: bool,
-    medal_display: bool,
+    row_options: DanmuRowOptions,
     opacity: f32,
     selected_user: SelectedUserState,
     content_width: f32,
@@ -32,9 +31,7 @@ impl DashboardDanmuView {
             rows: Rc::new(Vec::new()),
             scroll_handle: UniformListScrollHandle::new(),
             pending_scroll_to_bottom: true,
-            font_size: 14.0,
-            lite_mode: false,
-            medal_display: true,
+            row_options: DanmuRowOptions::default(),
             opacity: 1.0,
             selected_user,
             content_width: 0.0,
@@ -70,18 +67,12 @@ impl DashboardDanmuView {
         rows.drain(..rows_to_remove.min(rows.len()));
 
         let previous_row_count = rows.len();
-        if self.content_width <= 0.0 {
-            rows.push(RenderRow::Full(message.clone()));
-        } else {
-            append_message_rows(
-                &mut rows,
-                &message,
-                self.content_width - 14.0,
-                self.font_size,
-                self.lite_mode,
-                self.medal_display,
-            );
-        }
+        append_message_rows(
+            &mut rows,
+            &message,
+            self.content_width - 14.0,
+            self.row_options,
+        );
         self.row_counts.push_back(rows.len() - previous_row_count);
         self.messages.push_back(message);
         self.rows = Rc::new(rows);
@@ -91,24 +82,18 @@ impl DashboardDanmuView {
 
     pub(crate) fn set_style(
         &mut self,
-        font_size: f32,
-        lite_mode: bool,
-        medal_display: bool,
+        row_options: DanmuRowOptions,
         opacity: f32,
         cx: &mut Context<Self>,
     ) {
-        let layout_changed = (self.font_size - font_size).abs() > f32::EPSILON
-            || self.lite_mode != lite_mode
-            || self.medal_display != medal_display;
+        let layout_changed = self.row_options != row_options;
         let opacity_changed = (self.opacity - opacity).abs() > f32::EPSILON;
         if !layout_changed && !opacity_changed {
             return;
         }
 
         let should_auto_scroll = layout_changed && self.is_at_bottom();
-        self.font_size = font_size;
-        self.lite_mode = lite_mode;
-        self.medal_display = medal_display;
+        self.row_options = row_options;
         self.opacity = opacity;
         if layout_changed {
             self.rebuild_rows(should_auto_scroll);
@@ -143,18 +128,12 @@ impl DashboardDanmuView {
         self.row_counts.clear();
         for message in &self.messages {
             let previous_row_count = rows.len();
-            if self.content_width <= 0.0 {
-                rows.push(RenderRow::Full(message.clone()));
-            } else {
-                append_message_rows(
-                    &mut rows,
-                    message,
-                    self.content_width - 14.0,
-                    self.font_size,
-                    self.lite_mode,
-                    self.medal_display,
-                );
-            }
+            append_message_rows(
+                &mut rows,
+                message,
+                self.content_width - 14.0,
+                self.row_options,
+            );
             self.row_counts.push_back(rows.len() - previous_row_count);
         }
         self.rows = Rc::new(rows);
@@ -172,9 +151,9 @@ impl Render for DashboardDanmuView {
 
         let rows = Rc::clone(&self.rows);
         let item_count = rows.len();
-        let font_size = self.font_size;
-        let lite_mode = self.lite_mode;
-        let medal_display = self.medal_display;
+        let font_size = self.row_options.font_size;
+        let lite_mode = self.row_options.lite_mode;
+        let medal_display = self.row_options.medal_display;
         let opacity = self.opacity;
         let selected_user = self.selected_user.clone();
         let scroll_handle = self.scroll_handle.clone();
@@ -218,5 +197,50 @@ impl Render for DashboardDanmuView {
                 .track_scroll(&scroll_handle),
             )
             .child(Scrollbar::vertical(&scroll_handle))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{DanmuRowOptions, DashboardDanmuView, DisplayMessage, RenderRow};
+    use gpui::{AppContext, TestAppContext};
+    use jlivertool_core::messages::{DanmuMessage, GiftMessage};
+    use serde_json::json;
+
+    #[gpui::test]
+    fn hidden_gifts_occupy_no_rows_and_restore_after_front_eviction(cx: &mut TestAppContext) {
+        let panel = cx.new(|_| DashboardDanmuView::new(Default::default()));
+        let body = json!({"data": {"uid": 1, "uname": "观众", "giftId": 1, "giftName": "一个会换行的礼物"}});
+        let gift = DisplayMessage::Gift(GiftMessage::from_raw(&body, 1).unwrap());
+        let danmu = DanmuMessage::from_raw(&json!({"info": [[], "你好"]}), None).unwrap();
+
+        panel.update(cx, |panel, cx| {
+            let shown = panel.row_options;
+            let hidden = DanmuRowOptions {
+                gift_display: false,
+                ..shown
+            };
+            panel.set_style(hidden, 1.0, cx);
+            panel.push_message(gift.clone(), 0, cx);
+            assert!(
+                panel.rows.is_empty(),
+                "hidden even before the panel is measured"
+            );
+            panel.push_message(DisplayMessage::Danmu(danmu), 0, cx);
+            panel.set_content_width(90.0, cx);
+            panel.push_message(gift, 1, cx);
+            assert!(matches!(
+                panel.rows.as_slice(),
+                [RenderRow::Full(DisplayMessage::Danmu(_))]
+            ));
+
+            panel.set_style(shown, 1.0, cx);
+            let (first, rest) = panel.rows.split_first().unwrap();
+            assert!(matches!(first, RenderRow::Full(DisplayMessage::Danmu(_))));
+            assert!(rest.len() > 1);
+            assert!(rest
+                .iter()
+                .all(|row| matches!(row, RenderRow::GiftLine { .. })));
+        });
     }
 }
