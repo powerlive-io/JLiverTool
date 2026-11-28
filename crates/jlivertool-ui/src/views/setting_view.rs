@@ -1900,11 +1900,11 @@ impl SettingView {
                             }),
                         ))
                         .child(self.render_setting_row(
-                            "显示礼物",
-                            "关闭后仅隐藏礼物消息，不影响礼物记录",
+                            "礼物显示",
+                            "关闭后弹幕窗口不再显示礼物",
                             div().debug_selector(|| "gift-display-switch".into()).child(
                                 Switch::new("gift_display")
-                                    .accessibility_label("显示礼物")
+                                    .accessibility_label("礼物显示")
                                     .checked(gift_display)
                                     .on_click(cx.listener(|view, checked: &bool, window, cx| {
                                         view.settings.write().gift_display = *checked;
