@@ -1,23 +1,17 @@
 //! Gift window view
 
+mod layout;
+#[cfg(test)]
+mod tests;
+
 use crate::app::UiCommand;
-use crate::theme::Colors;
 use crate::views::online_gift_view::OnlineGiftView;
 use crate::views::window_wrapper::WindowFrameContent;
-use gpui::prelude::FluentBuilder;
 use gpui::*;
-use gpui_component::h_flex;
-use gpui_component::button::Button;
-use gpui_component::{Disableable, IconName};
-use gpui_component::scroll::Scrollbar;
-use gpui_component::v_flex;
-use gpui_component::Sizable;
 use jlivertool_core::database::Database;
 use jlivertool_core::messages::{GiftMessage, GuardMessage};
-use jlivertool_core::types::guard_level_name;
-use std::cell::RefCell;
+use layout::AmountInputs;
 use std::collections::VecDeque;
-use std::rc::Rc;
 use std::sync::Arc;
 
 const MAX_GIFT_COUNT: usize = 500;
@@ -40,6 +34,13 @@ impl GiftEntry {
         match self {
             GiftEntry::Gift(g) => &g.id,
             GiftEntry::Guard(g) => &g.id,
+        }
+    }
+
+    fn sender_name(&self) -> &str {
+        match self {
+            GiftEntry::Gift(g) => &g.sender.uname,
+            GiftEntry::Guard(g) => &g.sender.uname,
         }
     }
 
@@ -72,12 +73,6 @@ impl GiftEntry {
     }
 }
 
-/// Shared state for pending archive toggle
-type PendingArchiveToggle = Rc<RefCell<Option<String>>>;
-
-/// Shared state for pending delete
-type PendingDelete = Rc<RefCell<Option<String>>>;
-
 pub struct GiftView {
     online_query: Option<Entity<OnlineGiftView>>,
     online_window: Option<AnyWindowHandle>,
@@ -88,16 +83,12 @@ pub struct GiftView {
     show_archived: bool, // Whether to show archived entries
     min_value: f64,      // Minimum value filter in CNY
     max_value: f64,      // Maximum value filter in CNY (0 = no limit)
-    min_value_input: Option<Entity<gpui_component::input::InputState>>,
-    max_value_input: Option<Entity<gpui_component::input::InputState>>,
-    controls_window: Option<WindowId>,
+    filters_expanded: bool,
+    amount_inputs: Option<AmountInputs>,
     scroll_handle: UniformListScrollHandle,
     opacity: f32,
     database: Option<Arc<Database>>,
     room_id: Option<u64>,
-    pending_archive_toggle: PendingArchiveToggle,
-    pending_delete: PendingDelete,
-    show_clear_confirm: bool,
     // Cached filtered list to avoid O(n) filter on every render
     filtered_cache: Option<Vec<GiftEntry>>,
     // Version counter to track when cache needs invalidation
@@ -117,16 +108,12 @@ impl GiftView {
             show_archived: false,
             min_value: 0.0,
             max_value: 0.0,
-            min_value_input: None,
-            max_value_input: None,
-            controls_window: None,
+            filters_expanded: false,
+            amount_inputs: None,
             scroll_handle: UniformListScrollHandle::new(),
             opacity: 1.0,
             database: None,
             room_id: None,
-            pending_archive_toggle: Rc::new(RefCell::new(None)),
-            pending_delete: Rc::new(RefCell::new(None)),
-            show_clear_confirm: false,
             filtered_cache: None,
             list_version: 0,
             cached_list_version: 0,
@@ -171,7 +158,9 @@ impl GiftView {
         cx: &mut Context<Self>,
     ) {
         if let Some(query) = &self.online_query {
-            query.update(cx, |view, cx| view.receive_types(request_id, account_uid, result, cx));
+            query.update(cx, |view, cx| {
+                view.receive_types(request_id, account_uid, result, cx)
+            });
         }
     }
 
@@ -183,7 +172,9 @@ impl GiftView {
         cx: &mut Context<Self>,
     ) {
         if let Some(query) = &self.online_query {
-            query.update(cx, |view, cx| view.receive(request_id, account_uid, result, cx));
+            query.update(cx, |view, cx| {
+                view.receive(request_id, account_uid, result, cx)
+            });
         }
     }
 
@@ -468,771 +459,10 @@ impl GiftView {
         let threshold = px(50.0);
         offset.y <= -max_offset.y + threshold
     }
-
-    fn render_toolbar(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let opacity = self.opacity;
-        let window_id = window.window_handle().window_id();
-        if self.controls_window != Some(window_id) {
-            self.controls_window = Some(window_id);
-            self.min_value_input = None;
-            self.max_value_input = None;
-        }
-
-        // Initialize min value input if not already done
-        if self.min_value_input.is_none() {
-            let value = (self.min_value > 0.0).then(|| self.min_value.to_string());
-            let input = cx.new(|cx| {
-                let mut state = gpui_component::input::InputState::new(window, cx)
-                    .placeholder("最小")
-                    .mask_pattern(gpui_component::input::MaskPattern::number(None));
-                if let Some(value) = value {
-                    state.set_value(value, window, cx);
-                }
-                state
-            });
-            self.min_value_input = Some(input);
-        }
-
-        // Initialize max value input if not already done
-        if self.max_value_input.is_none() {
-            let value = (self.max_value > 0.0).then(|| self.max_value.to_string());
-            let input = cx.new(|cx| {
-                let mut state = gpui_component::input::InputState::new(window, cx)
-                    .placeholder("最大")
-                    .mask_pattern(gpui_component::input::MaskPattern::number(None));
-                if let Some(value) = value {
-                    state.set_value(value, window, cx);
-                }
-                state
-            });
-            self.max_value_input = Some(input);
-        }
-
-        let min_input_state = self.min_value_input.as_ref().unwrap().clone();
-        let max_input_state = self.max_value_input.as_ref().unwrap().clone();
-
-        // Read current input values and update filters
-        let min_text = min_input_state.read(cx).text().to_string();
-        let max_text = max_input_state.read(cx).text().to_string();
-
-        // Parse min value
-        let new_min = if min_text.is_empty() {
-            0.0
-        } else {
-            min_text.parse::<f64>().unwrap_or(0.0)
-        };
-
-        // Parse max value (0 means no limit)
-        let new_max = if max_text.is_empty() {
-            0.0
-        } else {
-            max_text.parse::<f64>().unwrap_or(0.0)
-        };
-
-        // Update filter values if changed
-        if (new_min - self.min_value).abs() > 0.001 {
-            self.min_value = new_min;
-            self.invalidate_cache();
-        }
-        if (new_max - self.max_value).abs() > 0.001 {
-            self.max_value = new_max;
-            self.invalidate_cache();
-        }
-
-        v_flex()
-            .w_full()
-            .flex_shrink_0()
-            .bg(Colors::bg_secondary_with_opacity(opacity))
-            .border_b_1()
-            .border_color(Colors::border())
-            .child(
-                v_flex()
-                    .px_3()
-                    .py_2()
-                    .gap_1()
-                    .child(
-                        div()
-                            .text_size(px(12.0))
-                            .font_weight(FontWeight::MEDIUM)
-                            .child("本地礼物记录"),
-                    )
-                    .child(
-                        div()
-                            .text_size(px(10.0))
-                            .text_color(Colors::text_muted())
-                            .child("本工具接收并保存的直播间礼物"),
-                    ),
-            )
-            // Filter controls - in content area
-            .child(
-                h_flex()
-                    .w_full()
-                    .h(px(36.0))
-                    .px_3()
-                    .items_center()
-                    .justify_between()
-                    .child(
-                        h_flex()
-                            .gap_2()
-                            .items_center()
-                            // Value filter inputs (hidden when only_guards is enabled)
-                            .when(!self.only_guards, |this| {
-                                this.child(
-                                    h_flex()
-                                        .gap_1()
-                                        .items_center()
-                                        .child(
-                                            div()
-                                                .text_size(px(10.0))
-                                                .text_color(Colors::text_muted())
-                                                .child("¥"),
-                                        )
-                                        .child(
-                                            div().w(px(70.0)).child(
-                                                gpui_component::input::Input::new(&min_input_state)
-                                                    .small(),
-                                            ),
-                                        )
-                                        .child(
-                                            div()
-                                                .text_size(px(10.0))
-                                                .text_color(Colors::text_muted())
-                                                .child("-"),
-                                        )
-                                        .child(
-                                            div().w(px(70.0)).child(
-                                                gpui_component::input::Input::new(&max_input_state)
-                                                    .small(),
-                                            ),
-                                        ),
-                                )
-                            }),
-                    )
-                    .child(
-                        h_flex()
-                            .gap_2()
-                            .items_center()
-                            // Only guards toggle
-                            .child(
-                                h_flex()
-                                    .gap_1()
-                                    .items_center()
-                                    .child(
-                                        div()
-                                            .text_size(px(10.0))
-                                            .text_color(Colors::text_muted())
-                                            .child("仅舰长"),
-                                    )
-                                    .child(
-                                        gpui_component::switch::Switch::new("only-guards-toggle")
-                                            .checked(self.only_guards)
-                                            .on_click(cx.listener(
-                                                |this, checked: &bool, _window, cx| {
-                                                    this.only_guards = *checked;
-                                                    this.invalidate_cache();
-                                                    cx.notify();
-                                                },
-                                            )),
-                                    ),
-                            )
-                            // Show archived toggle
-                            .child(
-                                h_flex()
-                                    .gap_1()
-                                    .items_center()
-                                    .child(
-                                        div()
-                                            .text_size(px(10.0))
-                                            .text_color(Colors::text_muted())
-                                            .child("已归档"),
-                                    )
-                                    .child(
-                                        gpui_component::switch::Switch::new("show-archived-toggle")
-                                            .checked(self.show_archived)
-                                            .on_click(cx.listener(
-                                                |this, checked: &bool, _window, cx| {
-                                                    this.show_archived = *checked;
-                                                    this.invalidate_cache();
-                                                    cx.notify();
-                                                },
-                                            )),
-                                    ),
-                            )
-                            .child(
-                                div()
-                                    .id("clear-btn")
-                                    .px_2()
-                                    .py_1()
-                                    .rounded(px(4.0))
-                                    .cursor_pointer()
-                                    .text_size(px(11.0))
-                                    .text_color(Colors::text_muted())
-                                    .hover(|s| s.bg(Colors::bg_hover_with_opacity(opacity)))
-                                    .on_click(cx.listener(|this, _event, _window, cx| {
-                                        this.show_clear_confirm = true;
-                                        cx.notify();
-                                    }))
-                                    .child("清空"),
-                            ),
-                    ),
-            )
-    }
-
-    fn render_online_query_shortcut(&self, cx: &Context<Self>) -> impl IntoElement {
-        h_flex()
-            .w_full()
-            .flex_shrink_0()
-            .px_3()
-            .py_2()
-            .gap_3()
-            .items_center()
-            .justify_between()
-            .border_t_1()
-            .border_color(Colors::border())
-            .bg(Colors::bg_secondary_with_opacity(self.opacity))
-            .child(
-                v_flex()
-                    .flex_1()
-                    .min_w_0()
-                    .gap_1()
-                    .child(
-                        div()
-                            .text_size(px(11.0))
-                            .font_weight(FontWeight::MEDIUM)
-                            .child("B 站历史记录"),
-                    )
-                    .child(
-                        div()
-                            .text_size(px(10.0))
-                            .text_color(Colors::text_muted())
-                            .child(if self.online_account.is_some() {
-                                "仅限当前登录账号 · 独立窗口"
-                            } else {
-                                "登录后可查询 · 独立窗口"
-                            }),
-                    ),
-            )
-            .child(
-                Button::new("open-online-gift-query")
-                    .outline()
-                    .small()
-                    .flex_shrink_0()
-                    .icon(IconName::Search)
-                    .label("查询 B 站记录")
-                    .tooltip("仅查询当前登录账号收到的礼物记录")
-                    .disabled(self.online_account.is_none())
-                    .on_click(cx.listener(|this, _, _, cx| this.open_online_query(cx))),
-            )
-    }
-
-    fn render_gift_list(
-        &mut self,
-        _window: &mut Window,
-        _cx: &mut Context<Self>,
-    ) -> impl IntoElement {
-        let gift_list: Vec<GiftEntry> = self.filtered_gift_list();
-        let item_count = gift_list.len();
-        let scroll_handle = self.scroll_handle.clone();
-        let pending_archive_toggle = self.pending_archive_toggle.clone();
-        let pending_delete = self.pending_delete.clone();
-        let opacity = self.opacity;
-
-        h_flex()
-            .id("gift-container")
-            .flex_1()
-            .min_h_0()
-            .w_full()
-            .overflow_hidden()
-            .child(
-                uniform_list("gift-list", item_count, {
-                    let gift_list = gift_list.clone();
-                    move |range, _window, cx| {
-                        range
-                            .map(|ix| {
-                                let entry = gift_list[ix].clone();
-                                let pending = pending_archive_toggle.clone();
-                                let pending_del = pending_delete.clone();
-                                cx.new(|_| {
-                                    GiftItemView::new(entry, ix, opacity, pending, pending_del)
-                                })
-                            })
-                            .collect()
-                    }
-                })
-                .flex_1()
-                .h_full()
-                .track_scroll(&scroll_handle),
-            )
-            .child(Scrollbar::vertical(&scroll_handle))
-    }
-}
-
-impl Render for GiftView {
-    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        // Process pending archive toggle
-        let pending_id = self.pending_archive_toggle.borrow_mut().take();
-        if let Some(id) = pending_id {
-            self.toggle_archived(&id, cx);
-        }
-
-        // Process pending delete
-        let pending_del_id = self.pending_delete.borrow_mut().take();
-        if let Some(id) = pending_del_id {
-            self.delete_entry(&id, cx);
-        }
-
-        let opacity = self.opacity;
-        let show_confirm = self.show_clear_confirm;
-
-        v_flex()
-            .size_full()
-            .bg(Colors::bg_primary_with_opacity(opacity))
-            .text_color(Colors::text_primary())
-            .child(self.render_toolbar(window, cx))
-            .child(self.render_gift_list(window, cx))
-            .child(self.render_online_query_shortcut(cx))
-            // Confirmation dialog overlay
-            .when(show_confirm, |this| {
-                this.child(
-                    div()
-                        .absolute()
-                        .top_0()
-                        .left_0()
-                        .size_full()
-                        .bg(hsla(0.0, 0.0, 0.0, 0.5 * opacity))
-                        .flex()
-                        .items_center()
-                        .justify_center()
-                        .child(
-                            v_flex()
-                                .w(px(280.0))
-                                .p_4()
-                                .rounded(px(8.0))
-                                .bg(Colors::bg_secondary_with_opacity(opacity))
-                                .border_1()
-                                .border_color(Colors::border())
-                                .gap_3()
-                                .child(
-                                    div()
-                                        .text_size(px(14.0))
-                                        .font_weight(FontWeight::BOLD)
-                                        .child("确认清空"),
-                                )
-                                .child(
-                                    div()
-                                        .text_size(px(12.0))
-                                        .text_color(Colors::text_secondary())
-                                        .child("确定要清空所有礼物记录吗？此操作不可撤销。"),
-                                )
-                                .child(
-                                    h_flex()
-                                        .gap_2()
-                                        .justify_end()
-                                        .child(
-                                            div()
-                                                .id("cancel-clear-btn")
-                                                .px_3()
-                                                .py(px(6.0))
-                                                .rounded(px(4.0))
-                                                .cursor_pointer()
-                                                .bg(Colors::bg_hover_with_opacity(opacity))
-                                                .text_size(px(12.0))
-                                                .hover(|s| s.opacity(0.8))
-                                                .on_click(cx.listener(
-                                                    |this, _event, _window, cx| {
-                                                        this.show_clear_confirm = false;
-                                                        cx.notify();
-                                                    },
-                                                ))
-                                                .child("取消"),
-                                        )
-                                        .child(
-                                            div()
-                                                .id("confirm-clear-btn")
-                                                .px_3()
-                                                .py(px(6.0))
-                                                .rounded(px(4.0))
-                                                .cursor_pointer()
-                                                .bg(hsla(0.0, 0.7, 0.5, 1.0))
-                                                .text_size(px(12.0))
-                                                .text_color(gpui::white())
-                                                .hover(|s| s.opacity(0.8))
-                                                .on_click(cx.listener(
-                                                    |this, _event, _window, cx| {
-                                                        this.show_clear_confirm = false;
-                                                        this.clear_all(cx);
-                                                    },
-                                                ))
-                                                .child("确认"),
-                                        ),
-                                ),
-                        ),
-                )
-            })
-    }
 }
 
 impl WindowFrameContent for GiftView {
     fn window_opacity(&self) -> f32 {
         self.opacity
-    }
-}
-
-struct GiftItemView {
-    entry: GiftEntry,
-    index: usize,
-    opacity: f32,
-    pending_archive_toggle: PendingArchiveToggle,
-    pending_delete: PendingDelete,
-}
-
-impl GiftItemView {
-    fn new(
-        entry: GiftEntry,
-        index: usize,
-        opacity: f32,
-        pending_archive_toggle: PendingArchiveToggle,
-        pending_delete: PendingDelete,
-    ) -> Self {
-        Self {
-            entry,
-            index,
-            opacity,
-            pending_archive_toggle,
-            pending_delete,
-        }
-    }
-
-    fn format_timestamp(timestamp: i64) -> String {
-        use chrono::{Local, TimeZone};
-        let dt = Local.timestamp_opt(timestamp, 0).unwrap();
-        dt.format("%Y/%m/%d %H:%M:%S").to_string()
-    }
-}
-
-impl Render for GiftItemView {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let archived = self.entry.archived();
-        let id = self.entry.id().to_string();
-        let index = self.index;
-        let opacity = self.opacity;
-        let pending_archive_toggle = self.pending_archive_toggle.clone();
-        let pending_delete = self.pending_delete.clone();
-
-        match &self.entry {
-            GiftEntry::Gift(gift) => {
-                let is_paid = gift.gift_info.coin_type != "silver";
-                let price_text = if is_paid {
-                    format!("¥{:.2}", gift.gift_info.price as f64 / 1000.0)
-                } else {
-                    "免费".to_string()
-                };
-
-                // Use muted colors for archived items
-                let text_color = if archived {
-                    Colors::text_muted()
-                } else {
-                    Colors::text_primary()
-                };
-                let accent_color = if archived {
-                    Colors::text_muted()
-                } else if is_paid {
-                    Colors::accent()
-                } else {
-                    Colors::text_secondary()
-                };
-
-                v_flex()
-                    .w_full()
-                    .px_3()
-                    .py_2()
-                    .gap_1()
-                    .border_b_1()
-                    .border_color(Colors::bg_hover_with_opacity(opacity))
-                    .when(archived, |el| el.opacity(0.5))
-                    .hover(|s| s.bg(Colors::bg_hover_with_opacity(opacity)))
-                    .child(
-                        h_flex()
-                            .w_full()
-                            .items_center()
-                            .justify_between()
-                            .child(
-                                h_flex()
-                                    .gap_2()
-                                    .items_center()
-                                    .child(
-                                        div()
-                                            .text_size(px(13.0))
-                                            .font_weight(FontWeight::BOLD)
-                                            .text_color(text_color)
-                                            .child(gift.sender.uname.clone()),
-                                    )
-                                    .child(
-                                        div()
-                                            .text_size(px(12.0))
-                                            .text_color(Colors::text_secondary())
-                                            .child(gift.action.clone()),
-                                    )
-                                    .child(
-                                        div()
-                                            .text_size(px(13.0))
-                                            .font_weight(FontWeight::BOLD)
-                                            .text_color(accent_color)
-                                            .child(gift.gift_info.name.clone()),
-                                    )
-                                    .child(
-                                        div()
-                                            .text_size(px(12.0))
-                                            .text_color(Colors::text_secondary())
-                                            .child(format!("x{}", gift.num)),
-                                    ),
-                            )
-                            .child(
-                                h_flex()
-                                    .gap_2()
-                                    .items_center()
-                                    .child(
-                                        div()
-                                            .text_size(px(12.0))
-                                            .text_color(accent_color)
-                                            .child(price_text),
-                                    )
-                                    .child({
-                                        let id = id.clone();
-                                        let pending = pending_archive_toggle.clone();
-                                        div()
-                                            .id(SharedString::from(format!(
-                                                "archive-btn-{}",
-                                                index
-                                            )))
-                                            .px_2()
-                                            .py(px(2.0))
-                                            .rounded(px(4.0))
-                                            .bg(if archived {
-                                                Colors::accent().opacity(0.2 * opacity)
-                                            } else {
-                                                Colors::bg_hover_with_opacity(opacity)
-                                            })
-                                            .cursor_pointer()
-                                            .text_size(px(10.0))
-                                            .font_weight(FontWeight::MEDIUM)
-                                            .text_color(if archived {
-                                                Colors::accent()
-                                            } else {
-                                                Colors::text_secondary()
-                                            })
-                                            .hover(|s| {
-                                                s.bg(if archived {
-                                                    Colors::accent().opacity(0.3 * opacity)
-                                                } else {
-                                                    Colors::bg_secondary_with_opacity(opacity)
-                                                })
-                                            })
-                                            .on_mouse_down(
-                                                MouseButton::Left,
-                                                move |_event, _window, cx| {
-                                                    *pending.borrow_mut() = Some(id.clone());
-                                                    cx.refresh_windows();
-                                                },
-                                            )
-                                            .child(if archived { "恢复" } else { "归档" })
-                                    })
-                                    .child({
-                                        let id = id.clone();
-                                        let pending = pending_delete.clone();
-                                        div()
-                                            .id(SharedString::from(format!("delete-btn-{}", index)))
-                                            .px_2()
-                                            .py(px(2.0))
-                                            .rounded(px(4.0))
-                                            .bg(Colors::bg_hover_with_opacity(opacity))
-                                            .cursor_pointer()
-                                            .text_size(px(10.0))
-                                            .font_weight(FontWeight::MEDIUM)
-                                            .text_color(hsla(0.0, 0.7, 0.5, 1.0))
-                                            .hover(|s| s.bg(hsla(0.0, 0.7, 0.5, 0.2 * opacity)))
-                                            .on_mouse_down(
-                                                MouseButton::Left,
-                                                move |_event, _window, cx| {
-                                                    *pending.borrow_mut() = Some(id.clone());
-                                                    cx.refresh_windows();
-                                                },
-                                            )
-                                            .child("删除")
-                                    }),
-                            ),
-                    )
-                    .child(
-                        div()
-                            .text_size(px(11.0))
-                            .text_color(Colors::text_muted())
-                            .child(Self::format_timestamp(gift.timestamp)),
-                    )
-            }
-            GiftEntry::Guard(guard) => {
-                let guard_name = guard_level_name(guard.guard_level);
-                let price_text = format!("¥{:.2}", guard.price as f64 / 1000.0);
-
-                // Use muted colors for archived items
-                let text_color = if archived {
-                    Colors::text_muted()
-                } else {
-                    Colors::text_primary()
-                };
-                let guard_bg = if archived {
-                    hsla(0.0, 0.0, 0.5, 0.1 * opacity)
-                } else {
-                    hsla(0.15, 0.8, 0.5, 0.1 * opacity)
-                };
-                let guard_hover_bg = if archived {
-                    hsla(0.0, 0.0, 0.5, 0.15 * opacity)
-                } else {
-                    hsla(0.15, 0.8, 0.5, 0.15 * opacity)
-                };
-                let guard_badge_bg = if archived {
-                    hsla(0.0, 0.0, 0.5, 0.3 * opacity)
-                } else {
-                    hsla(0.15, 0.8, 0.5, 0.3 * opacity)
-                };
-                let price_color = if archived {
-                    Colors::text_muted()
-                } else {
-                    hsla(0.15, 0.8, 0.6, 1.0)
-                };
-
-                v_flex()
-                    .w_full()
-                    .px_3()
-                    .py_2()
-                    .gap_1()
-                    .border_b_1()
-                    .border_color(Colors::bg_hover_with_opacity(opacity))
-                    .bg(guard_bg)
-                    .when(archived, |el| el.opacity(0.5))
-                    .hover(|s| s.bg(guard_hover_bg))
-                    .child(
-                        h_flex()
-                            .w_full()
-                            .items_center()
-                            .justify_between()
-                            .child(
-                                h_flex()
-                                    .gap_2()
-                                    .items_center()
-                                    .child(
-                                        div()
-                                            .text_size(px(13.0))
-                                            .font_weight(FontWeight::BOLD)
-                                            .text_color(text_color)
-                                            .child(guard.sender.uname.clone()),
-                                    )
-                                    .child(
-                                        div()
-                                            .text_size(px(12.0))
-                                            .text_color(Colors::text_secondary())
-                                            .child("开通了"),
-                                    )
-                                    .child(
-                                        div()
-                                            .px_2()
-                                            .py(px(2.0))
-                                            .rounded(px(4.0))
-                                            .bg(guard_badge_bg)
-                                            .text_size(px(12.0))
-                                            .font_weight(FontWeight::BOLD)
-                                            .text_color(text_color)
-                                            .child(guard_name),
-                                    )
-                                    .child(
-                                        div()
-                                            .text_size(px(12.0))
-                                            .text_color(Colors::text_secondary())
-                                            .child(format!("{}{}", guard.num, guard.unit)),
-                                    ),
-                            )
-                            .child(
-                                h_flex()
-                                    .gap_2()
-                                    .items_center()
-                                    .child(
-                                        div()
-                                            .text_size(px(12.0))
-                                            .font_weight(FontWeight::BOLD)
-                                            .text_color(price_color)
-                                            .child(price_text),
-                                    )
-                                    .child({
-                                        let id = id.clone();
-                                        let pending = pending_archive_toggle.clone();
-                                        div()
-                                            .id(SharedString::from(format!(
-                                                "archive-btn-{}",
-                                                index
-                                            )))
-                                            .px_2()
-                                            .py(px(2.0))
-                                            .rounded(px(4.0))
-                                            .bg(if archived {
-                                                Colors::accent().opacity(0.2 * opacity)
-                                            } else {
-                                                Colors::bg_hover_with_opacity(opacity)
-                                            })
-                                            .cursor_pointer()
-                                            .text_size(px(10.0))
-                                            .font_weight(FontWeight::MEDIUM)
-                                            .text_color(if archived {
-                                                Colors::accent()
-                                            } else {
-                                                Colors::text_secondary()
-                                            })
-                                            .hover(|s| {
-                                                s.bg(if archived {
-                                                    Colors::accent().opacity(0.3 * opacity)
-                                                } else {
-                                                    Colors::bg_secondary_with_opacity(opacity)
-                                                })
-                                            })
-                                            .on_mouse_down(
-                                                MouseButton::Left,
-                                                move |_event, _window, cx| {
-                                                    *pending.borrow_mut() = Some(id.clone());
-                                                    cx.refresh_windows();
-                                                },
-                                            )
-                                            .child(if archived { "恢复" } else { "归档" })
-                                    })
-                                    .child({
-                                        let id = id.clone();
-                                        let pending = pending_delete.clone();
-                                        div()
-                                            .id(SharedString::from(format!("delete-btn-{}", index)))
-                                            .px_2()
-                                            .py(px(2.0))
-                                            .rounded(px(4.0))
-                                            .bg(Colors::bg_hover_with_opacity(opacity))
-                                            .cursor_pointer()
-                                            .text_size(px(10.0))
-                                            .font_weight(FontWeight::MEDIUM)
-                                            .text_color(hsla(0.0, 0.7, 0.5, 1.0))
-                                            .hover(|s| s.bg(hsla(0.0, 0.7, 0.5, 0.2 * opacity)))
-                                            .on_mouse_down(
-                                                MouseButton::Left,
-                                                move |_event, _window, cx| {
-                                                    *pending.borrow_mut() = Some(id.clone());
-                                                    cx.refresh_windows();
-                                                },
-                                            )
-                                            .child("删除")
-                                    }),
-                            ),
-                    )
-                    .child(
-                        div()
-                            .text_size(px(11.0))
-                            .text_color(Colors::text_muted())
-                            .child(Self::format_timestamp(guard.timestamp)),
-                    )
-            }
-        }
     }
 }
