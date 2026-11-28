@@ -13,6 +13,7 @@ mod emoji_image;
 mod event_processing;
 mod render;
 mod user_info_card;
+mod username;
 
 pub use content_rendering::{
     render_content_with_links, DisplayMessage, GiftTextRole, GiftTextRun, RenderRow,

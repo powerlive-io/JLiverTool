@@ -9,6 +9,7 @@ use super::content_rendering::{
 };
 use super::emoji_image::emoji_image;
 use super::user_info_card::{SelectedUser, SelectedUserState};
+use super::username::username_label;
 use crate::theme::Colors;
 use gpui::*;
 use gpui_component::h_flex;
@@ -56,7 +57,12 @@ impl DanmuListItemView {
         }
     }
 
-    fn render_danmu(&self, danmu: &DanmuMessage) -> Div {
+    fn username(&self, name: &str, size: f32) -> Stateful<Div> {
+        username_label(("user", self.index), name, None, size)
+    }
+
+    /// Full messages and wrapped first lines have the same clickable prefix.
+    fn render_danmu_prefix(&self, danmu: &DanmuMessage) -> Div {
         let font_size = self.font_size;
         let lite_mode = self.lite_mode;
         let opacity = self.opacity;
@@ -142,73 +148,53 @@ impl DanmuListItemView {
             Colors::accent()
         };
 
-        let item_index = self.index;
+        let name = username_label(
+            ("user", self.index),
+            &sender.uname,
+            (!lite_mode).then(|| format!("{}:", sender.uname)),
+            font_size,
+        );
         let selected_user = self.selected_user.clone();
-        let sender_clone = sender.clone();
-
+        let sender = sender.clone();
+        el = el.child(
+            name.text_color(username_color)
+                .cursor_pointer()
+                .on_mouse_down(MouseButton::Left, move |_, _, cx| {
+                    *selected_user.borrow_mut() = Some(SelectedUser {
+                        sender: sender.clone(),
+                        fetched_info: None,
+                        fetch_requested: false,
+                    });
+                    cx.refresh_windows();
+                }),
+        );
         if lite_mode {
-            let selected_user_lite = selected_user.clone();
-            let sender_lite = sender_clone.clone();
-            el = el
-                .child(
-                    div()
-                        .id(SharedString::from(format!("user-{}", item_index)))
-                        .text_size(px(font_size))
-                        .text_color(username_color)
-                        .cursor_pointer()
-                        .child(sender.uname.clone())
-                        .on_mouse_down(MouseButton::Left, move |_, _, cx| {
-                            *selected_user_lite.borrow_mut() = Some(SelectedUser {
-                                sender: sender_lite.clone(),
-                                fetched_info: None,
-                                fetch_requested: false,
-                            });
-                            cx.refresh_windows();
-                        }),
-                )
-                .child(
-                    div()
-                        .text_size(px(font_size))
-                        .text_color(Colors::text_muted())
-                        .child(":"),
-                );
-        } else {
             el = el.child(
                 div()
-                    .id(SharedString::from(format!("user-{}", item_index)))
                     .text_size(px(font_size))
-                    .text_color(username_color)
-                    .cursor_pointer()
-                    .child(format!("{}:", sender.uname))
-                    .on_mouse_down(MouseButton::Left, move |_, _, cx| {
-                        *selected_user.borrow_mut() = Some(SelectedUser {
-                            sender: sender_clone.clone(),
-                            fetched_info: None,
-                            fetch_requested: false,
-                        });
-                        cx.refresh_windows();
-                    }),
+                    .text_color(Colors::text_muted())
+                    .child(":"),
+            );
+        } else if let Some(reply) = &danmu.reply_uname {
+            el = el.child(
+                username_label(("reply", self.index), reply, Some(format!("@{reply}")), font_size)
+                    .text_color(Colors::text_muted()),
             );
         }
+        el
+    }
 
-        // Reply indicator
-        if let Some(reply) = &danmu.reply_uname {
-            if !lite_mode {
-                el = el.child(
-                    div()
-                        .text_size(px(font_size))
-                        .text_color(Colors::text_muted())
-                        .child(format!("@{}", reply)),
-                );
-            }
-        }
+    fn render_danmu(&self, danmu: &DanmuMessage) -> Div {
+        let mut el = self.render_danmu_prefix(danmu);
+        let font_size = self.font_size;
+        let item_index = self.index;
 
         // Content or Emoji
         if let Some(emoji) = &danmu.emoji_content {
             // For emoji danmu, display emoji image constrained to row height
             // Only render if URL is not empty to avoid GPUI crash on empty images
             if !emoji.url.is_empty() {
-                let emoji_size = row_height - 4.0;
+                let emoji_size = self.row_height() - 4.0;
                 if danmu.is_mirror {
                     el = el.child(
                         div()
@@ -283,10 +269,8 @@ impl DanmuListItemView {
 
         el = el
             .child(
-                div()
-                    .text_size(px(font_size))
-                    .text_color(Colors::text_muted())
-                    .child(interact.sender.uname.clone()),
+                self.username(&interact.sender.uname, font_size)
+                    .text_color(Colors::text_muted()),
             )
             .child(
                 div()
@@ -336,14 +320,12 @@ impl DanmuListItemView {
             );
         }
 
-        el = el.child(
-            div()
-                .text_size(px(font_size))
-                .text_color(entry_color)
-                .child(format!("{} {} 进入直播间", level_name, entry.sender.uname)),
-        );
-
-        el
+        el = el.text_size(px(font_size)).text_color(entry_color);
+        if !level_name.is_empty() {
+            el = el.child(level_name);
+        }
+        el.child(self.username(&entry.sender.uname, font_size))
+            .child("进入直播间")
     }
 
     fn render_gift(&self, gift: &GiftMessage) -> Div {
@@ -387,10 +369,8 @@ impl DanmuListItemView {
 
         el = el
             .child(
-                div()
-                    .text_size(px(font_size))
-                    .text_color(Colors::text_secondary())
-                    .child(gift.sender.uname.clone()),
+                self.username(&gift.sender.uname, font_size)
+                    .text_color(Colors::text_secondary()),
             )
             .child(
                 div()
@@ -464,11 +444,9 @@ impl DanmuListItemView {
 
         el = el
             .child(
-                div()
-                    .text_size(px(font_size))
+                self.username(&guard.sender.uname, font_size)
                     .font_weight(FontWeight::BOLD)
-                    .text_color(guard_color)
-                    .child(guard.sender.uname.clone()),
+                    .text_color(guard_color),
             )
             .child(
                 div()
@@ -572,12 +550,10 @@ impl DanmuListItemView {
             )
             // Username
             .child(
-                div()
+                self.username(&sc.sender.uname, font_size * 0.9)
                     .flex_shrink_0()
-                    .text_size(px(font_size * 0.9))
                     .font_weight(FontWeight::SEMIBOLD)
-                    .text_color(Colors::text_primary())
-                    .child(sc.sender.uname.clone()),
+                    .text_color(Colors::text_primary()),
             )
             // Message with tooltip
             .child(message_el);
@@ -694,13 +670,26 @@ impl DanmuListItemView {
                 GiftTextRole::Price => (gift_color, FontWeight::NORMAL, font_size * 0.9),
                 _ => (Colors::text_secondary(), FontWeight::NORMAL, font_size),
             };
-            el = el.child(
-                div()
-                    .text_size(px(size))
+            el = if run.role == GiftTextRole::Sender {
+                el.child(
+                    username_label(
+                        ("user", self.index),
+                        &gift.sender.uname,
+                        Some(run.text.clone()),
+                        size,
+                    )
                     .font_weight(weight)
-                    .text_color(color)
-                    .child(run.text.clone()),
-            );
+                    .text_color(color),
+                )
+            } else {
+                el.child(
+                    div()
+                        .text_size(px(size))
+                        .font_weight(weight)
+                        .text_color(color)
+                        .child(run.text.clone()),
+                )
+            };
         }
 
         el
@@ -708,158 +697,10 @@ impl DanmuListItemView {
 
     /// Render the first line of a wrapped danmu (medal + username + partial content)
     fn render_danmu_first_line(&self, danmu: &DanmuMessage, content_slice: &str) -> Div {
-        let font_size = self.font_size;
-        let lite_mode = self.lite_mode;
-        let opacity = self.opacity;
-        let row_height = self.row_height();
-        let sender = &danmu.sender;
-        let medal = &sender.medal_info;
-        let show_medal = self.medal_display && !medal.medal_name.is_empty() && medal.is_lighted;
-
-        let mut el = h_flex()
-            .w_full()
-            .h(px(row_height))
-            .gap_1()
-            .items_center()
-            .rounded_sm()
-            .hover(|s| s.bg(Colors::bg_hover_with_opacity(opacity)))
-            .overflow_hidden();
-
-        if lite_mode {
-            el = el.px_1();
-        } else {
-            el = el.px_2();
-        }
-
-        // Medal badge (same as render_danmu)
-        if show_medal && !lite_mode {
-            let (medal_bg, medal_border) = Colors::medal_colors(medal.medal_level);
-            let guard_level = medal.guard_level;
-            let medal_height = (font_size * 1.2).clamp(14.0, 20.0);
-            let medal_font_size = (font_size * 0.75).clamp(8.0, 12.0);
-
-            let mut medal_name_el = h_flex()
-                .h_full()
-                .px(px(3.0))
-                .gap(px(2.0))
-                .items_center()
-                .bg(medal_bg);
-
-            if let Some(icon_url) = guard_icon_url(guard_level) {
-                medal_name_el = medal_name_el.child(
-                    img(icon_url)
-                        .size(px(medal_height - 2.0))
-                        .object_fit(ObjectFit::Contain),
-                );
-            }
-
-            medal_name_el = medal_name_el.child(
-                div()
-                    .text_size(px(medal_font_size))
-                    .text_color(gpui::white())
-                    .child(medal.medal_name.clone()),
-            );
-
-            el = el.child(
-                h_flex()
-                    .flex_shrink_0()
-                    .h(px(medal_height))
-                    .rounded_sm()
-                    .border_1()
-                    .border_color(medal_border)
-                    .overflow_hidden()
-                    .child(medal_name_el)
-                    .child(
-                        div()
-                            .h_full()
-                            .px(px(3.0))
-                            .min_w(px(medal_height))
-                            .flex()
-                            .items_center()
-                            .justify_center()
-                            .bg(gpui::white())
-                            .text_size(px(medal_font_size))
-                            .text_color(medal_bg.opacity(1.0))
-                            .child(medal.medal_level.to_string()),
-                    ),
-            );
-        }
-
-        // Username
-        let username_color = if danmu.is_special {
-            Colors::warning()
-        } else {
-            Colors::accent()
-        };
-
-        let item_index = self.index;
-        let selected_user = self.selected_user.clone();
-        let sender_clone = sender.clone();
-
-        if lite_mode {
-            let selected_user_lite = selected_user.clone();
-            let sender_lite = sender_clone.clone();
-            el = el
-                .child(
-                    div()
-                        .id(SharedString::from(format!("user-{}", item_index)))
-                        .text_size(px(font_size))
-                        .text_color(username_color)
-                        .cursor_pointer()
-                        .child(sender.uname.clone())
-                        .on_mouse_down(MouseButton::Left, move |_, _, cx| {
-                            *selected_user_lite.borrow_mut() = Some(SelectedUser {
-                                sender: sender_lite.clone(),
-                                fetched_info: None,
-                                fetch_requested: false,
-                            });
-                            cx.refresh_windows();
-                        }),
-                )
-                .child(
-                    div()
-                        .text_size(px(font_size))
-                        .text_color(Colors::text_muted())
-                        .child(":"),
-                );
-        } else {
-            el = el.child(
-                div()
-                    .id(SharedString::from(format!("user-{}", item_index)))
-                    .text_size(px(font_size))
-                    .text_color(username_color)
-                    .cursor_pointer()
-                    .child(format!("{}:", sender.uname))
-                    .on_mouse_down(MouseButton::Left, move |_, _, cx| {
-                        *selected_user.borrow_mut() = Some(SelectedUser {
-                            sender: sender_clone.clone(),
-                            fetched_info: None,
-                            fetch_requested: false,
-                        });
-                        cx.refresh_windows();
-                    }),
-            );
-        }
-
-        // Reply indicator
-        if let Some(reply) = &danmu.reply_uname {
-            if !lite_mode {
-                el = el.child(
-                    div()
-                        .text_size(px(font_size))
-                        .text_color(Colors::text_muted())
-                        .child(format!("@{}", reply)),
-                );
-            }
-        }
-
-        // First line content with BV link support (no ellipsis, no tooltip — content is pre-split)
-        el = el.child(
-            render_content_with_links(content_slice, font_size, Colors::text_primary(), item_index)
+        self.render_danmu_prefix(danmu).child(
+            render_content_with_links(content_slice, self.font_size, Colors::text_primary(), self.index)
                 .overflow_hidden(),
-        );
-
-        el
+        )
     }
 
     /// Render a continuation line of a wrapped danmu (indented remaining content)
@@ -958,12 +799,10 @@ impl DanmuListItemView {
             )
             // Username
             .child(
-                div()
+                self.username(&sc.sender.uname, font_size * 0.9)
                     .flex_shrink_0()
-                    .text_size(px(font_size * 0.9))
                     .font_weight(FontWeight::SEMIBOLD)
-                    .text_color(Colors::text_primary())
-                    .child(sc.sender.uname.clone()),
+                    .text_color(Colors::text_primary()),
             );
 
         el
