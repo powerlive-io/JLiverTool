@@ -15,6 +15,7 @@ mod render;
 #[cfg(test)]
 mod tests;
 mod user_info_card;
+mod username;
 
 pub use content_rendering::{
     render_content_with_links, DisplayMessage, GiftTextRole, GiftTextRun, RenderRow,
