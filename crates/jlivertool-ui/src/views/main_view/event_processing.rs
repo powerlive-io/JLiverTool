@@ -1,6 +1,6 @@
 //! Event processing for MainView
 
-use super::{DisplayMessage, MainView, MAX_DANMU_COUNT};
+use super::{DanmuRowOptions, DisplayMessage, MainView, MAX_DANMU_COUNT};
 use gpui::Context;
 use jlivertool_core::events::Event;
 
@@ -192,6 +192,7 @@ impl MainView {
                     lite_mode,
                     medal_display,
                     interact_display,
+                    gift_display,
                     theme,
                     font_size,
                     tts_enabled,
@@ -215,6 +216,7 @@ impl MainView {
                                 lite_mode,
                                 medal_display,
                                 interact_display,
+                                gift_display,
                                 theme,
                                 font_size,
                                 tts_enabled,
@@ -230,9 +232,12 @@ impl MainView {
                         view.set_auto_update_check(auto_update_check, cx);
                     });
                     self.opacity = opacity;
-                    self.font_size = font_size;
-                    self.lite_mode = lite_mode;
-                    self.medal_display = medal_display;
+                    self.row_options = DanmuRowOptions {
+                        font_size,
+                        lite_mode,
+                        medal_display,
+                        gift_display,
+                    };
                     self.interact_display = interact_display;
                     self.guard_effect = guard_effect;
                     self.level_effect = level_effect;

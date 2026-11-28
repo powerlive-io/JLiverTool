@@ -12,13 +12,15 @@ mod danmu_list_item;
 mod emoji_image;
 mod event_processing;
 mod render;
+#[cfg(test)]
+mod tests;
 mod user_info_card;
 mod username;
 
 pub use content_rendering::{
     render_content_with_links, DisplayMessage, GiftTextRole, GiftTextRun, RenderRow,
 };
-pub(crate) use content_rendering::{append_message_rows, build_render_rows};
+pub(crate) use content_rendering::{append_message_rows, build_render_rows, DanmuRowOptions};
 pub(crate) use danmu_list_item::DanmuListItemView;
 pub(crate) use user_info_card::SelectedUserState;
 use user_info_card::UserInfoCard;
@@ -26,6 +28,7 @@ use user_info_card::UserInfoCard;
 use crate::app::UiCommand;
 use crate::components::update_dialog::UpdateDialog;
 use crate::tray::{TrayManager, TrayState};
+use crate::views::setting_view::SettingsData;
 use crate::views::AudienceView;
 use crate::views::{DashboardDanmuView, DashboardView, DashboardViews};
 use crate::views::GiftView;
@@ -67,7 +70,7 @@ pub struct MainView {
     online_count: u64,
     connected: bool,
     danmu_list: VecDeque<DisplayMessage>,
-    /// Flattened render rows for the uniform_list (1 source message → 1-2 rows)
+    /// Flattened render rows for the uniform_list (zero rows for hidden messages)
     render_rows: Rc<Vec<RenderRow>>,
     /// Last window width used to compute render_rows (for change detection)
     last_render_width: f32,
@@ -93,11 +96,8 @@ pub struct MainView {
     config: Option<Arc<parking_lot::RwLock<jlivertool_core::config::ConfigStore>>>,
     // Window opacity
     opacity: f32,
-    // Danmu font size
-    font_size: f32,
+    row_options: DanmuRowOptions,
     // Window display settings
-    lite_mode: bool,
-    medal_display: bool,
     interact_display: bool,
     guard_effect: bool,
     level_effect: bool,
@@ -256,17 +256,21 @@ impl MainView {
             view.on_window_settings_change({
                 let tx = command_tx.clone();
                 let entity = entity.clone();
-                move |lite_mode,
-                      medal_display,
-                      interact_display,
-                      guard_effect,
-                      level_effect,
-                      _window,
-                      cx| {
+                move |settings, _window, cx| {
+                    let &SettingsData {
+                        lite_mode,
+                        medal_display,
+                        interact_display,
+                        gift_display,
+                        guard_effect,
+                        level_effect,
+                        ..
+                    } = settings;
                     let _ = tx.send(UiCommand::UpdateWindowSettings {
                         lite_mode,
                         medal_display,
                         interact_display,
+                        gift_display,
                         guard_effect,
                         level_effect,
                     });
@@ -275,9 +279,14 @@ impl MainView {
                         let old_interact_display = view.interact_display;
                         let old_guard_effect = view.guard_effect;
                         let old_level_effect = view.level_effect;
+                        let old_message_count = view.danmu_list.len();
 
-                        view.lite_mode = lite_mode;
-                        view.medal_display = medal_display;
+                        if view.row_options.gift_display != gift_display && view.is_at_bottom() {
+                            view.scroll_to_bottom();
+                        }
+                        view.row_options.lite_mode = lite_mode;
+                        view.row_options.medal_display = medal_display;
+                        view.row_options.gift_display = gift_display;
                         view.interact_display = interact_display;
                         view.guard_effect = guard_effect;
                         view.level_effect = level_effect;
@@ -312,7 +321,9 @@ impl MainView {
                         }
 
                         view.sync_dashboard_danmu_style(cx);
-                        view.sync_dashboard_danmu(cx);
+                        if old_message_count != view.danmu_list.len() {
+                            view.sync_dashboard_danmu(cx);
+                        }
                         cx.notify();
                     });
                 }
@@ -332,7 +343,7 @@ impl MainView {
                     let _ = tx.send(UiCommand::UpdateFontSize(font_size));
                     // Update local font size
                     let _ = entity.update(cx, |view, cx| {
-                        view.font_size = font_size;
+                        view.row_options.font_size = font_size;
                         view.last_render_width = 0.0; // Force rebuild of render rows
                         view.sync_dashboard_danmu_style(cx);
                         cx.notify();
@@ -483,9 +494,7 @@ impl MainView {
             database: None,
             config: None,
             opacity: 1.0,
-            font_size: 14.0,
-            lite_mode: false,
-            medal_display: true,
+            row_options: DanmuRowOptions::default(),
             interact_display: false,
             guard_effect: true,
             level_effect: false,
@@ -818,13 +827,7 @@ impl MainView {
     /// Fully rebuild render_rows from danmu_list for the given window width.
     fn rebuild_render_rows(&mut self, window_width: f32) {
         let available_width = window_width - 14.0; // scrollbar buffer
-        let rows = build_render_rows(
-            self.danmu_list.iter(),
-            available_width,
-            self.font_size,
-            self.lite_mode,
-            self.medal_display,
-        );
+        let rows = build_render_rows(&self.danmu_list, available_width, self.row_options);
         self.render_rows = Rc::new(rows);
         self.last_render_width = window_width;
         self.render_rows_source_count = self.danmu_list.len();
@@ -852,14 +855,7 @@ impl MainView {
         let new_start = self.render_rows_source_count;
         for i in new_start..current_source_len {
             let msg = &self.danmu_list[i];
-            append_message_rows(
-                &mut rows,
-                msg,
-                available_width,
-                self.font_size,
-                self.lite_mode,
-                self.medal_display,
-            );
+            append_message_rows(&mut rows, msg, available_width, self.row_options);
         }
 
         self.render_rows = Rc::new(rows);
@@ -1019,13 +1015,7 @@ impl MainView {
 
     fn sync_dashboard_danmu_style(&mut self, cx: &mut Context<Self>) {
         self.dashboard_danmu_view.update(cx, |view, cx| {
-            view.set_style(
-                self.font_size,
-                self.lite_mode,
-                self.medal_display,
-                self.opacity,
-                cx,
-            );
+            view.set_style(self.row_options, self.opacity, cx);
         });
     }
 
